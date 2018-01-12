@@ -238,6 +238,12 @@ def full_chain():
     return jsonify(response), 200
 
 
+@app.route('/id', methods=['GET'])
+def get_id():
+    response = {'id': f'{node_identifier}'}
+    return jsonify(response), 200
+
+
 @app.route('/nodes/register', methods=['POST'])
 def register_nodes():
     values = request.get_json()
@@ -272,7 +278,6 @@ def consensus():
         }
 
     return jsonify(response), 200
-
 
 if __name__ == '__main__':
     from argparse import ArgumentParser
