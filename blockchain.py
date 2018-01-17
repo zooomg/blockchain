@@ -18,11 +18,7 @@ class Blockchain:
         # Create the genesis block
         self.new_block(previous_hash='1', proof=100)
 
-<<<<<<< HEAD
     def register_node(self, node_id, node_addr, node_pubkey):
-=======
-    def register_node(self, node_id, node_addr):
->>>>>>> 506a996774276dc363f662a60f354e74858ebf0b
         """
         Add a new node to the list of nodes
 
@@ -31,11 +27,7 @@ class Blockchain:
         """
 
         parsed_url = urlparse(node_addr)
-<<<<<<< HEAD
         self.nodes[node_id] = (parsed_url.netloc, node_pubkey)
-=======
-        self.nodes[node_id] = parsed_url.netloc
->>>>>>> 506a996774276dc363f662a60f354e74858ebf0b
 
     def valid_chain(self, chain):
         """
@@ -66,7 +58,6 @@ class Blockchain:
 
         return True
 
-    # TODO node가 list -> dict 으로 바꿔야 함
     def resolve_conflicts(self):
         """
         This is our consensus algorithm, it resolves conflicts
@@ -258,7 +249,6 @@ def get_id():
     return jsonify(response), 200
 
 
-<<<<<<< HEAD
 @app.route('/pubkey', methods=['GET'])
 def get_pubkey():
     str_pubkey = str(pubkey)
@@ -274,18 +264,13 @@ def get_pubkey():
 @app.route('/connected_nodes', methods=['GET'])
 def get_connected_nodes():
     response = {'nodes': list(blockchain.nodes.keys())}
-=======
-@app.route('/connected_nodes', methods=['GET'])
-def get_connected_nodes():
-    response = {'nodes': blockchain.nodes}
->>>>>>> 506a996774276dc363f662a60f354e74858ebf0b
     return jsonify(response), 200
 
 
 @app.route('/nodes/register', methods=['POST'])
 def register_nodes():
     values = request.get_json()
-    print(values)
+
     nodes = values.get('nodes')
     if nodes is None:
         return "Error: Please supply a valid list of nodes", 400
@@ -293,7 +278,6 @@ def register_nodes():
     for node in nodes:
         node_id = node.get('id')
         node_addr = node.get('address')
-<<<<<<< HEAD
         node_pubkey = rsa.PublicKey(**node.get('pubkey'))
         if node_id != node_identifier:
             blockchain.register_node(node_id, node_addr, pubkey)
@@ -301,14 +285,6 @@ def register_nodes():
     response = {
         'message': 'New nodes have been added',
         'total_nodes': list(blockchain.nodes.keys()),
-=======
-        if node_id != node_identifier:
-            blockchain.register_node(node_id, node_addr)
-
-    response = {
-        'message': 'New nodes have been added',
-        'total_nodes': blockchain.nodes,
->>>>>>> 506a996774276dc363f662a60f354e74858ebf0b
     }
     return jsonify(response), 201
 
