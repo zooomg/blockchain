@@ -1,5 +1,6 @@
 import hashlib
 import json
+import rsa
 from time import time
 from urllib.parse import urlparse
 from uuid import uuid4
@@ -12,20 +13,21 @@ class Blockchain:
     def __init__(self):
         self.current_transactions = []
         self.chain = []
-        self.nodes = set()
+        self.nodes = {}
 
         # Create the genesis block
         self.new_block(previous_hash='1', proof=100)
 
-    def register_node(self, address):
+    def register_node(self, node_id, node_addr, node_pubkey):
         """
         Add a new node to the list of nodes
 
-        :param address: Address of node. Eg. 'http://192.168.0.5:5000'
+        :param info: Id and address of node.
+        Eg. '9b0e332928c24b29962eb4fd4e71af69': 'http://192.168.0.5:5000'
         """
 
-        parsed_url = urlparse(address)
-        self.nodes.add(parsed_url.netloc)
+        parsed_url = urlparse(node_addr)
+        self.nodes[node_id] = (parsed_url.netloc, node_pubkey)
 
     def valid_chain(self, chain):
         """
@@ -71,7 +73,7 @@ class Blockchain:
         max_length = len(self.chain)
 
         # Grab and verify the chains from all the nodes in our network
-        for node in neighbours:
+        for node in neighbours.values():
             response = requests.get(f'http://{node}/chain')
 
             if response.status_code == 200:
@@ -180,6 +182,9 @@ app = Flask(__name__)
 # Generate a globally unique address for this node
 node_identifier = str(uuid4()).replace('-', '')
 
+# Generate a pair of the public key and the private key
+(pubkey, privkey) = rsa.newkeys(512)
+
 # Instantiate the Blockchain
 blockchain = Blockchain()
 
@@ -244,6 +249,24 @@ def get_id():
     return jsonify(response), 200
 
 
+@app.route('/pubkey', methods=['GET'])
+def get_pubkey():
+    str_pubkey = str(pubkey)
+    parse_pubkey = str_pubkey.split('(')[1][:-1].split(' ')
+    parse_num = {}
+    parse_num['e'] = int(parse_pubkey[1])
+    parse_num['n'] = int(parse_pubkey[0][:-1])
+
+    response = {'pubkey': parse_num}
+    return jsonify(response), 200
+
+
+@app.route('/connected_nodes', methods=['GET'])
+def get_connected_nodes():
+    response = {'nodes': list(blockchain.nodes.keys())}
+    return jsonify(response), 200
+
+
 @app.route('/nodes/register', methods=['POST'])
 def register_nodes():
     values = request.get_json()
@@ -253,11 +276,15 @@ def register_nodes():
         return "Error: Please supply a valid list of nodes", 400
 
     for node in nodes:
-        blockchain.register_node(node)
+        node_id = node.get('id')
+        node_addr = node.get('address')
+        node_pubkey = rsa.PublicKey(**node.get('pubkey'))
+        if node_id != node_identifier:
+            blockchain.register_node(node_id, node_addr, pubkey)
 
     response = {
         'message': 'New nodes have been added',
-        'total_nodes': list(blockchain.nodes),
+        'total_nodes': list(blockchain.nodes.keys()),
     }
     return jsonify(response), 201
 
@@ -279,6 +306,7 @@ def consensus():
 
     return jsonify(response), 200
 
+
 if __name__ == '__main__':
     from argparse import ArgumentParser
 
@@ -287,4 +315,4 @@ if __name__ == '__main__':
     args = parser.parse_args()
     port = args.port
 
-    app.run(host='0.0.0.0', port=port)
+    app.run(host='127.0.0.1', port=port)
