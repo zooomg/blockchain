@@ -7,6 +7,9 @@ from uuid import uuid4
 
 import requests
 from flask import Flask, jsonify, request
+from threading import Thread
+import signal
+from time import sleep
 
 
 class Blockchain:
@@ -190,6 +193,15 @@ node_identifier = str(uuid4()).replace('-', '')
 # Instantiate the Blockchain
 blockchain = Blockchain()
 
+# Signal Handler
+# def handler(signum, frame):
+#     print("HI! ALARM"+str(signum))
+#
+# def sub():
+#     while True:
+#         signal.alarm(3)
+#         sleep(3)
+
 
 @app.route('/mine', methods=['GET'])
 def mine():
@@ -341,7 +353,9 @@ def get_leader():
 
 if __name__ == '__main__':
     from argparse import ArgumentParser
-
+    # signal.signal(signal.SIGALRM,handler)
+    # subthread = Thread(target = sub)
+    # subthread.start()
     parser = ArgumentParser()
     parser.add_argument('-p', '--port', default=5000, type=int, help='port to listen on')
     args = parser.parse_args()
