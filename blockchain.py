@@ -12,7 +12,7 @@ from flask import Flask, jsonify, request
 class Blockchain:
     def __init__(self):
         self.leader = ()                # id : addr pair
-        self.leader_idx = 0             # leader's idx
+        self.leader_idx = -1            # leader's idx
         self.current_transactions = []  # tx
         self.chain = []                 # current chain
         self.nodes = {}                 # connected nodes
@@ -290,6 +290,9 @@ def register_nodes():
     values = request.get_json()
 
     nodes = values.get('nodes')
+    leader_idx = values.get('leader_idx')
+    blockchain.leader_idx = leader_idx
+
     if nodes is None:
         return "Error: Please supply a valid list of nodes", 400
 
@@ -330,6 +333,12 @@ def consensus():
     return jsonify(response), 200
 
 
+@app.route('/nodes/leader', methods=['GET'])
+def get_leader():
+    response = {'nodes': blockchain.leader}
+    return jsonify(response), 200
+
+
 if __name__ == '__main__':
     from argparse import ArgumentParser
 
@@ -338,4 +347,4 @@ if __name__ == '__main__':
     args = parser.parse_args()
     port = args.port
 
-    app.run(host='127.0.0.1', port=port)
+    app.run(host='0.0.0.0', port=port)

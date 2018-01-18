@@ -4,13 +4,12 @@ from uuid import uuid4
 
 import requests
 
-# nodes_addr = ["http://172.17.64.97:5000",
-#               "http://172.17.64.175:5000",
-#               "http://172.17.67.233:5000"]
+nodes_addr = ["http://192.168.0.20:5000",
+              "http://192.168.0.22:5000"]
 
-nodes_addr = ["http://127.0.0.1:5002",
-              "http://127.0.0.1:5000",
-              "http://127.0.0.1:5001"]
+# nodes_addr = ["http://127.0.0.1:5002",
+#               "http://127.0.0.1:5000",
+#               "http://127.0.0.1:5001"]
 
 leader_id = None
 leader_idx = -1
@@ -41,7 +40,7 @@ def get_info():
         flag = False
 
 def send_info():
-    data = {'nodes': nodes}
+    data = {'nodes': nodes, 'leader_idx': leader_idx}
     jdata = json.dumps(data)
     headers = {'Content-Type': 'application/json'}
 
