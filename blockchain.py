@@ -11,9 +11,11 @@ from flask import Flask, jsonify, request
 
 class Blockchain:
     def __init__(self):
-        self.current_transactions = []
-        self.chain = []
-        self.nodes = {}
+        self.leader = ()                # id : addr pair
+        self.leader_idx = 0             # leader's idx
+        self.current_transactions = []  # tx
+        self.chain = []                 # current chain
+        self.nodes = {}                 # connected nodes
 
         # Create the genesis block
         self.new_block(previous_hash='1', proof=100)
@@ -234,6 +236,22 @@ def new_transaction():
     return jsonify(response), 201
 
 
+# @app.route('/transactions/new', methods=['POST'])
+# def new_transaction():
+#     values = request.get_json()
+
+#     # Check that the required fields are in the POST'ed data
+#     required = ['sender', 'recipient', 'amount']
+#     if not all(k in values for k in required):
+#         return 'Missing values', 400
+
+#     # Create a new Transaction
+#     index = blockchain.new_transaction(values['sender'], values['recipient'], values['amount'])
+
+#     response = {'message': f'Transaction will be added to Block {index}'}
+#     return jsonify(response), 201
+
+
 @app.route('/chain', methods=['GET'])
 def full_chain():
     response = {
@@ -279,6 +297,11 @@ def register_nodes():
         node_id = node.get('id')
         node_addr = node.get('address')
         node_pubkey = rsa.PublicKey(**node.get('pubkey'))
+        is_leader = node.get('leader')
+
+        if is_leader is True:
+            blockchain.leader = (node_id, node_addr)
+
         if node_id != node_identifier:
             blockchain.register_node(node_id, node_addr, pubkey)
 

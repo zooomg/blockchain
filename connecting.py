@@ -8,14 +8,17 @@ import requests
 #               "http://172.17.64.175:5000",
 #               "http://172.17.67.233:5000"]
 
-nodes_addr = ["http://127.0.0.1:5000",
-              "http://127.0.0.1:5001",
-              "http://127.0.0.1:5002"]
+nodes_addr = ["http://127.0.0.1:5002",
+              "http://127.0.0.1:5000",
+              "http://127.0.0.1:5001"]
 
-
+leader_id = None
+leader_idx = -1
 nodes = []
 
 def get_info():
+    flag = True
+
     for node in nodes_addr:
         url = node + '/id'
         response = requests.get(url=url)
@@ -30,7 +33,12 @@ def get_info():
         if response.status_code == 200:
             node_pubkey = response.json()['pubkey']
 
-        nodes.append({'id': node_id, 'address': node, 'pubkey': node_pubkey})
+        nodes.append({'id': node_id, 'address': node, 'pubkey': node_pubkey, 'leader': flag})
+        if flag == True:
+            global leader_id
+            leader_id = node_id
+
+        flag = False
 
 def send_info():
     data = {'nodes': nodes}
@@ -49,6 +57,12 @@ def send_info():
                 print(t)
 
 get_info()
+
+nodes = sorted(nodes, key=lambda k:k['id'])
+for i in range(len(nodes)):
+    if nodes[i].get('id') == leader_id:
+        leader_idx = i
+
 send_info()
 
 # 4번 부터 작성
