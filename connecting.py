@@ -4,12 +4,12 @@ from uuid import uuid4
 
 import requests
 
-nodes_addr = ["http://192.168.0.20:5000",
-              "http://192.168.0.22:5000"]
+# nodes_addr = ["http://192.168.0.20:5000",
+#               "http://192.168.0.22:5000"]
 
-# nodes_addr = ["http://127.0.0.1:5002",
-#               "http://127.0.0.1:5000",
-#               "http://127.0.0.1:5001"]
+nodes_addr = ["http://127.0.0.1:5002",
+              "http://127.0.0.1:5000",
+              "http://127.0.0.1:5001"]
 
 leader_id = None
 leader_idx = -1
