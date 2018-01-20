@@ -3,6 +3,7 @@ import json
 import rsa
 from time import time
 from urllib.parse import urlparse
+from uuid import uuid4
 
 import requests
 from threading import Thread
@@ -12,14 +13,21 @@ from time import sleep
 
 class Blockchain:
     def __init__(self):
-        self.leader = ()                # id : addr pair
-        self.leader_idx = -1            # leader's idx
-        self.current_transactions = []  # tx
-        self.chain = []                 # current chain
-        self.nodes = {}                 # connected nodes
+        self.leader = ()                    # id : addr pair
+        self.leader_idx = -1                # leader's idx
+        self.current_transactions = []      # tx
+        self.chain = []                     # current chain
+        self.nodes = {}                     # connected nodes
+        self.status = [None, {}, (0, 0)]    # phase info
+
+        # Generate a globally unique address for this node
+        self.node_identifier = str(uuid4()).replace('-', '')
+
+        # Generate a pair of the public key and the private key
+        (self.pubkey, self.prikey) = rsa.newkeys(2048)
 
         # Create the genesis block
-        self.new_block(previous_hash='1', proof=100)
+        # self.new_block(previous_hash='1', proof=100)
 
     def register_node(self, node_id, node_addr, node_pubkey):
         """
@@ -95,7 +103,7 @@ class Blockchain:
 
         return False
 
-    def new_block(self, proof, previous_hash):
+    def new_block(self):
         """
         Create a new Block in the Blockchain
 
@@ -108,14 +116,29 @@ class Blockchain:
             'index': len(self.chain) + 1,
             'timestamp': time(),
             'transactions': self.current_transactions,
-            'proof': proof,
-            'previous_hash': previous_hash or self.hash(self.chain[-1]),
         }
 
-        # Reset the current list of transactions
-        self.current_transactions = []
+        data = {'block': block, 'phase': 0}
 
-        self.chain.append(block)
+        sign = rsa.sign(str(data).encode('utf8'), self.prikey, 'SHA-1')
+        headers = {'Content-Type': 'application/json'}
+
+        for node in self.nodes:
+            url = 'http://' + self.nodes[node][0] + '/consensus'                # idx 0 = addr
+            cdata = rsa.encrypt(str(data).encode('utf8'), self.nodes[node][1])  # idx 1 = pubkey
+            fdata = {'data': list(cdata), 'sign': list(sign)}
+            jdata = json.dumps(fdata)
+
+            response = requests.post(url, headers=headers, data=jdata)
+
+        # delete txs over 2/3
+        # # Reset the current list of transactions
+        # self.current_transactions = []
+
+        self.status = [block, {}, (0, 0)]
+
+        # append txs over 2/3
+        # self.chain.append(block)
         return block
 
     def new_transaction(self, sender, recipient, amount):

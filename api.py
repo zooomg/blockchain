@@ -1,7 +1,7 @@
 import json
 import rsa
 from urllib.parse import urlparse
-from uuid import uuid4
+from ast import literal_eval
 
 import requests
 from flask import Flask, jsonify, request
@@ -14,43 +14,68 @@ import blockchain
 # Instantiate the Node
 app = Flask(__name__)
 
-# Generate a globally unique address for this node
-node_identifier = str(uuid4()).replace('-', '')
-
-# Generate a pair of the public key and the private key
-(pubkey, privkey) = rsa.newkeys(512)
-
 # Instantiate the Blockchain
 blockchain = blockchain.Blockchain()
 
+# {
+#     'phase': 0              # pre-prepare = 0, prepare = 1, commit = 2
+#     'block': proposal       # in phase 0-1
+#     'vote': True or False   # in phase 2
+# }
+@app.route('/consensus', methods=['POST'])
+def consensus():
+    values = request.get_json()
+    cdata = bytes(values.get('data'))
+    sign = bytes(values.get('sign'))
+    data = rsa.decrypt(cdata, blockchain.prikey)
 
-@app.route('/mine', methods=['GET'])
-def mine():
-    # We run the proof of work algorithm to get the next proof...
-    last_block = blockchain.last_block
-    last_proof = last_block['proof']
-    proof = blockchain.proof_of_work(last_proof)
+    if not rsa.verify(data, sign, blockchain.nodes[blockchain.leader[0]][1]):
+        print("ERROR")
+        pass
 
-    # We must receive a reward for finding the proof.
-    # The sender is "0" to signify that this node has mined a new coin.
-    blockchain.new_transaction(
-        sender="0",
-        recipient=node_identifier,
-        amount=1,
-    )
+    data = literal_eval(data.decode('utf8'))
+    phase = data.get('phase')
 
-    # Forge the new Block by adding it to the chain
-    previous_hash = blockchain.hash(last_block)
-    block = blockchain.new_block(proof, previous_hash)
+    if phase == '0':    # pre-prepare
+        pass
+    elif phase == '1':  # prepare
+        pass
+    elif phase == '2':  # commit
+        pass
+    else:               # error
+        pass
 
-    response = {
-        'message': "New Block Forged",
-        'index': block['index'],
-        'transactions': block['transactions'],
-        'proof': block['proof'],
-        'previous_hash': block['previous_hash'],
-    }
-    return jsonify(response), 200
+    response = {'message': f'SUCCESS'}
+    return jsonify(response), 201
+
+
+# @app.route('/mine', methods=['GET'])
+# def mine():
+#     # We run the proof of work algorithm to get the next proof...
+#     last_block = blockchain.last_block
+#     last_proof = last_block['proof']
+#     proof = blockchain.proof_of_work(last_proof)
+
+#     # We must receive a reward for finding the proof.
+#     # The sender is "0" to signify that this node has mined a new coin.
+#     blockchain.new_transaction(
+#         sender="0",
+#         recipient=node_identifier,
+#         amount=1,
+#     )
+
+#     # Forge the new Block by adding it to the chain
+#     previous_hash = blockchain.hash(last_block)
+#     block = blockchain.new_block(proof, previous_hash)
+
+#     response = {
+#         'message': "New Block Forged",
+#         'index': block['index'],
+#         'transactions': block['transactions'],
+#         'proof': block['proof'],
+#         'previous_hash': block['previous_hash'],
+#     }
+#     return jsonify(response), 200
 
 
 @app.route('/transactions/new', methods=['POST'])
@@ -96,13 +121,13 @@ def full_chain():
 
 @app.route('/id', methods=['GET'])
 def get_id():
-    response = {'id': f'{node_identifier}'}
+    response = {'id': f'{blockchain.node_identifier}'}
     return jsonify(response), 200
 
 
 @app.route('/pubkey', methods=['GET'])
 def get_pubkey():
-    str_pubkey = str(pubkey)
+    str_pubkey = str(blockchain.pubkey)
     parse_pubkey = str_pubkey.split('(')[1][:-1].split(' ')
     parse_num = {}
     parse_num['e'] = int(parse_pubkey[1])
@@ -138,8 +163,8 @@ def register_nodes():
         if is_leader is True:
             blockchain.leader = (node_id, node_addr)
 
-        if node_id != node_identifier:
-            blockchain.register_node(node_id, node_addr, pubkey)
+        if node_id != blockchain.node_identifier:
+            blockchain.register_node(node_id, node_addr, node_pubkey)
 
     response = {
         'message': 'New nodes have been added',
@@ -149,7 +174,7 @@ def register_nodes():
 
 
 @app.route('/nodes/resolve', methods=['GET'])
-def consensus():
+def nodes_resolve():
     replaced = blockchain.resolve_conflicts()
 
     if replaced:
@@ -171,6 +196,11 @@ def get_leader():
     response = {'nodes': blockchain.leader}
     return jsonify(response), 200
 
+
+@app.route('/mine', methods=['GET'])
+def do_it_now():
+    response = blockchain.new_block()
+    return jsonify(response), 200
 
 if __name__ == '__main__':
     from argparse import ArgumentParser
