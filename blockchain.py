@@ -126,10 +126,16 @@ class Blockchain:
         for node in self.nodes:
             url = 'http://' + self.nodes[node][0] + '/consensus'                # idx 0 = addr
             cdata = rsa.encrypt(str(data).encode('utf8'), self.nodes[node][1])  # idx 1 = pubkey
-            fdata = {'data': list(cdata), 'sign': list(sign)}
+            fdata = {'data': list(cdata), 'sign': list(sign), 'id': self.node_identifier}
             jdata = json.dumps(fdata)
 
             response = requests.post(url, headers=headers, data=jdata)
+
+            if response.status_code == 201:
+                print("[PRE PREPARE] ", end="")
+                node_id = response.json()['id']
+                result = response.json()['result']
+                print(node_id, ":", result)
 
         # delete txs over 2/3
         # # Reset the current list of transactions

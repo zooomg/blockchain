@@ -48,7 +48,7 @@ def send_info():
         url = node + '/nodes/register'
         response = requests.post(url, headers=headers, data=jdata)
 
-        if response.status_code == 200:
+        if response.status_code == 201:
             msg = response.json()['message']
             total_nodes = response.json()['total_nodes']
             print(msg)

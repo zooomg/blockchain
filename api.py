@@ -27,25 +27,40 @@ def consensus():
     values = request.get_json()
     cdata = bytes(values.get('data'))
     sign = bytes(values.get('sign'))
+    node_id = values.get('id')
     data = rsa.decrypt(cdata, blockchain.prikey)
 
-    if not rsa.verify(data, sign, blockchain.nodes[blockchain.leader[0]][1]):
-        print("ERROR")
+    if not rsa.verify(data, sign, blockchain.nodes[node_id][1]):
+        print("VERITY ERROR")
+        # Terminate this function
         pass
 
     data = literal_eval(data.decode('utf8'))
     phase = data.get('phase')
 
-    if phase == '0':    # pre-prepare
-        pass
-    elif phase == '1':  # prepare
-        pass
-    elif phase == '2':  # commit
-        pass
+    response = None
+
+    if phase == 0:    # pre-prepare
+        if node_id != blockchain.leader[0]:
+            print("NOT LEADER ERROR")
+            # Terminate this function
+            pass
+        # block validation
+        block = data.get('block')   # TODO : change like block -> blockchain.block
+        # exec prepare phase
+        response = {'id': blockchain.node_identifier, 'result': True}   # if block is valid True, else is False
+    elif phase == 1:  # prepare
+        # check either id is unique
+        block = data.get('block')
+        # check either block is same
+        # when count is over 2/3 nodes, exec commit phase
+    elif phase == 2:  # commit
+        # check either id is unique
+        result = data.get('result')
+        # when count is over 2/3 nodes, send result to mid server
     else:               # error
         pass
 
-    response = {'message': f'SUCCESS'}
     return jsonify(response), 201
 
 
