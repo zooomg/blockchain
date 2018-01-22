@@ -16,6 +16,7 @@ class Blockchain:
         self.leader = ()                    # id : addr pair
         self.leader_idx = -1                # leader's idx
         self.current_transactions = []      # tx
+        self.current_block = None           # current view block
         self.chain = []                     # current chain
         self.nodes = {}                     # connected nodes
         self.status = [None, {}, (0, 0)]    # phase info
@@ -103,20 +104,22 @@ class Blockchain:
 
         return False
 
-    def new_block(self):
+    # pre-prepare
+    def pre_prepare(self):
         """
-        Create a new Block in the Blockchain
+        Propose a new block to blockchain network
 
-        :param proof: The proof given by the Proof of Work algorithm
-        :param previous_hash: Hash of previous Block
-        :return: New Block
+        :return: new block
         """
 
+        # TODO : change block params
         block = {
             'index': len(self.chain) + 1,
             'timestamp': time(),
             'transactions': self.current_transactions,
         }
+
+        self.current_block = block
 
         data = {'block': block, 'phase': 0}
 
@@ -137,15 +140,34 @@ class Blockchain:
                 result = response.json()['result']
                 print(node_id, ":", result)
 
-        # delete txs over 2/3
-        # # Reset the current list of transactions
-        # self.current_transactions = []
-
         self.status = [block, {}, (0, 0)]
 
-        # append txs over 2/3
-        # self.chain.append(block)
         return block
+
+    def prepare(self):
+        """
+        Multicast the current view block to others for validation proposal
+
+        :return: block
+        """
+        data = {'block': self.current_block, 'phase': 1}
+
+        sign = rsa.sign(str(data).encode('utf8'), self.prikey, 'SHA-1')
+        headers = {'Content-Type': 'application/json'}
+
+        for node in self.nodes:
+            url = 'http://' + self.nodes[node][0] + '/consensus'                # idx 0 = addr
+            cdata = rsa.encrypt(str(data).encode('utf8'), self.nodes[node][1])  # idx 1 = pubkey
+            fdata = {'data': list(cdata), 'sign': list(sign), 'id': self.node_identifier}
+            jdata = json.dumps(fdata)
+
+            response = requests.post(url, headers=headers, data=jdata)
+
+            if response.status_code == 201:
+                print("[PREPARE] ", end="")
+                node_id = response.json()['id']
+                result = response.json()['result']
+                print(node_id, ":", result)
 
     def new_transaction(self, sender, recipient, amount):
         """

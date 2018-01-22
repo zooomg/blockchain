@@ -40,24 +40,37 @@ def consensus():
 
     response = None
 
-    if phase == 0:    # pre-prepare
+    if phase == 0:      # pre-prepare
         if node_id != blockchain.leader[0]:
             print("NOT LEADER ERROR")
-            # Terminate this function
+            # TODO : Terminate this function
             pass
-        # block validation
-        block = data.get('block')   # TODO : change like block -> blockchain.block
-        # exec prepare phase
-        response = {'id': blockchain.node_identifier, 'result': True}   # if block is valid True, else is False
-    elif phase == 1:  # prepare
-        # check either id is unique
+        # get block
         block = data.get('block')
-        # check either block is same
-        # when count is over 2/3 nodes, exec commit phase
-    elif phase == 2:  # commit
-        # check either id is unique
+        # block validation
+        valid = True    # TODO : validation function
+        if valid:
+            # update blockchain's view block to block
+            blockchain.current_block = block
+            # status 
+            blockchain.status = [block, {}, (0, 0)]
+            # TODO : exec prepare phase
+            blockchain.prepare()
+            # response
+            response = {'id': blockchain.node_identifier, 'result': True}   # block is valid
+        else:
+            # response
+            response = {'id': blockchain.node_identifier, 'result': False}  # block is invalid
+    elif phase == 1:    # prepare
+        # TODO check either id is unique
+        # get block
+        block = data.get('block')
+        # TODO : check either block is same
+        # TODO : when count is over 2/3 nodes, exec commit phase
+    elif phase == 2:    # commit
+        # TODO : check either id is unique
         result = data.get('result')
-        # when count is over 2/3 nodes, send result to mid server
+        # TODO :when count is over 2/3 nodes, send result to mid server
     else:               # error
         pass
 
@@ -214,7 +227,7 @@ def get_leader():
 
 @app.route('/mine', methods=['GET'])
 def do_it_now():
-    response = blockchain.new_block()
+    response = blockchain.pre_prepare()
     return jsonify(response), 200
 
 if __name__ == '__main__':
