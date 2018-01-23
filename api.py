@@ -14,8 +14,11 @@ import blockchain
 # Instantiate the Node
 app = Flask(__name__)
 
+# Genesis block
+genesis_block = blockchain.init_genesis_block()
+
 # Instantiate the Blockchain
-blockchain = blockchain.Blockchain()
+blockchain = blockchain.Blockchain(genesis_block)
 
 # {
 #     'phase': 0              # pre-prepare = 0, prepare = 1, commit = 2
@@ -45,6 +48,7 @@ def consensus():
             print("NOT LEADER ERROR")
             # TODO : Terminate this function
             pass
+        # TODO : check either index is right (prevent replay attack)
         # get block
         block = data.get('block')
         # block validation
@@ -52,8 +56,8 @@ def consensus():
         if valid:
             # update blockchain's view block to block
             blockchain.current_block = block
-            # status 
-            blockchain.status = [block, {}, (0, 0)]
+            # status reset
+            blockchain.status = [1, block, {str(block): {blockchain.leader[0], blockchain.node_identifier}}, (0, 0)]
             # TODO : exec prepare phase
             blockchain.prepare()
             # response
@@ -62,12 +66,20 @@ def consensus():
             # response
             response = {'id': blockchain.node_identifier, 'result': False}  # block is invalid
     elif phase == 1:    # prepare
-        # TODO check either id is unique
         # get block
         block = data.get('block')
-        # TODO : check either block is same
+        # TODO : check either index is right (prevent replay attack)
+        # TODO : check either id is unique and block is same
+        if blockchain.status[1].get(str(block), None) is None:  # if new block
+            blockchain.status[1][str(block)] = {node_id}
+        else:                                                   # exist block
+            blockchain.status[1][str(block)].add(node_id)
         # TODO : when count is over 2/3 nodes, exec commit phase
+        if len(blockchain.nodes) * 2 < len(blockchain.status[2][str(blockchain.current_block)]) * 3:
+            blockchain.status[0] = 2
+            # blockchain.commit(True)
     elif phase == 2:    # commit
+        # TODO : check either index is right (prevent replay attack)
         # TODO : check either id is unique
         result = data.get('result')
         # TODO :when count is over 2/3 nodes, send result to mid server

@@ -6,20 +6,19 @@ from urllib.parse import urlparse
 from uuid import uuid4
 
 import requests
-from threading import Thread
+import threading
 import signal
 from time import sleep
 
-
 class Blockchain:
-    def __init__(self):
+    def __init__(self, genesis_block):
         self.leader = ()                    # id : addr pair
         self.leader_idx = -1                # leader's idx
         self.current_transactions = []      # tx
         self.current_block = None           # current view block
         self.chain = []                     # current chain
         self.nodes = {}                     # connected nodes
-        self.status = [None, {}, (0, 0)]    # phase info
+        self.status = [0, None, {}, (0, 0)]    # phase info [phase_idx, block, {str(block): [list(block's id)]}, (yes, no)]
 
         # Generate a globally unique address for this node
         self.node_identifier = str(uuid4()).replace('-', '')
@@ -28,7 +27,7 @@ class Blockchain:
         (self.pubkey, self.prikey) = rsa.newkeys(2048)
 
         # Create the genesis block
-        # self.new_block(previous_hash='1', proof=100)
+        self.chain.append(genesis_block)
 
     def register_node(self, node_id, node_addr, node_pubkey):
         """
@@ -104,6 +103,15 @@ class Blockchain:
 
         return False
 
+    def block_thread(self, url, headers, data):
+        response = requests.post(url, headers=headers, data=data)
+
+        if response.status_code == 201:
+            print("[PRE PREPARE] ", end="")
+            node_id = response.json()['id']
+            result = response.json()['result']
+            print(node_id, ":", result)
+
     # pre-prepare
     def pre_prepare(self):
         """
@@ -128,19 +136,22 @@ class Blockchain:
 
         for node in self.nodes:
             url = 'http://' + self.nodes[node][0] + '/consensus'                # idx 0 = addr
+            print("pre-prepare: from", self.node_identifier, "to", url)
             cdata = rsa.encrypt(str(data).encode('utf8'), self.nodes[node][1])  # idx 1 = pubkey
             fdata = {'data': list(cdata), 'sign': list(sign), 'id': self.node_identifier}
             jdata = json.dumps(fdata)
 
-            response = requests.post(url, headers=headers, data=jdata)
+            threading.Thread(target=self.block_thread, args=(url, headers, jdata)).start()
+            # self.block_thread(url, headers, jdata)
+            # response = requests.post(url, headers=headers, data=jdata)
 
-            if response.status_code == 201:
-                print("[PRE PREPARE] ", end="")
-                node_id = response.json()['id']
-                result = response.json()['result']
-                print(node_id, ":", result)
+            # if response.status_code == 201:
+            #     print("[PRE PREPARE] ", end="")
+            #     node_id = response.json()['id']
+            #     result = response.json()['result']
+            #     print(node_id, ":", result)
 
-        self.status = [block, {}, (0, 0)]
+        self.status = [1, block, {str(block): {self.node_identifier}}, (0, 0)]
 
         return block
 
@@ -157,6 +168,7 @@ class Blockchain:
 
         for node in self.nodes:
             url = 'http://' + self.nodes[node][0] + '/consensus'                # idx 0 = addr
+            print("prepare: from", self.node_identifier, "to", url)
             cdata = rsa.encrypt(str(data).encode('utf8'), self.nodes[node][1])  # idx 1 = pubkey
             fdata = {'data': list(cdata), 'sign': list(sign), 'id': self.node_identifier}
             jdata = json.dumps(fdata)
@@ -168,6 +180,16 @@ class Blockchain:
                 node_id = response.json()['id']
                 result = response.json()['result']
                 print(node_id, ":", result)
+
+        return self.current_block
+
+    def commit(self, result):
+        """
+        Multicast the result of node
+
+        :return: result
+        """
+        return result
 
     def new_transaction(self, sender, recipient, amount):
         """
@@ -230,6 +252,20 @@ class Blockchain:
         return guess_hash[:4] == "0000"
 
 
+def init_genesis_block():
+    """
+    Init genesis block
+
+    :return: Genesis block
+    """
+
+    # TODO : change block
+    block = {
+        'index': 1,
+        'timestamp': time(),
+        'transactions': [],
+    }
+    return block
 
 # signal ex
 # signal.signal(signal.SIGALRM,handler)
