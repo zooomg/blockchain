@@ -142,8 +142,6 @@ class Blockchain:
             jdata = json.dumps(fdata)
 
             threading.Thread(target=self.block_thread, args=(url, headers, jdata)).start()
-            # self.block_thread(url, headers, jdata)
-            # response = requests.post(url, headers=headers, data=jdata)
 
             # if response.status_code == 201:
             #     print("[PRE PREPARE] ", end="")
@@ -173,13 +171,14 @@ class Blockchain:
             fdata = {'data': list(cdata), 'sign': list(sign), 'id': self.node_identifier}
             jdata = json.dumps(fdata)
 
-            response = requests.post(url, headers=headers, data=jdata)
+            threading.Thread(target=self.block_thread, args=(url, headers, jdata)).start()
+            # response = requests.post(url, headers=headers, data=jdata)
 
-            if response.status_code == 201:
-                print("[PREPARE] ", end="")
-                node_id = response.json()['id']
-                result = response.json()['result']
-                print(node_id, ":", result)
+            # if response.status_code == 201:
+            #     print("[PREPARE] ", end="")
+            #     node_id = response.json()['id']
+            #     result = response.json()['result']
+            #     print(node_id, ":", result)
 
         return self.current_block
 

@@ -5,7 +5,7 @@ from ast import literal_eval
 
 import requests
 from flask import Flask, jsonify, request
-from threading import Thread
+import threading
 import signal
 from time import sleep
 
@@ -65,12 +65,14 @@ def consensus():
             # status reset
             blockchain.status = [1, block, {str(block): {blockchain.leader[0], blockchain.node_identifier}}, (0, 0)]
             # TODO : exec prepare phase
-            blockchain.prepare()
+            threading.Thread(target=blockchain.prepare).start()
             # response
             response = {'id': blockchain.node_identifier, 'result': True}   # block is valid
+            return jsonify(response), 201
         else:
             # response
             response = {'id': blockchain.node_identifier, 'result': False}  # block is invalid
+            return jsonify(response), 201
     elif phase == 1:    # prepare
         # get block
         block = data.get('block')
@@ -80,6 +82,9 @@ def consensus():
             blockchain.status[2][str(block)] = {node_id}
         else:                                                   # exist block
             blockchain.status[2][str(block)].add(node_id)
+
+        response = {'id': blockchain.node_identifier, 'result': True}
+
         # TODO : when count is over 2/3 nodes, exec commit phase
         if (len(blockchain.nodes) + 1) * 2 < len(blockchain.status[2][str(blockchain.current_block)]) * 3:
             blockchain.status[0] = 2
