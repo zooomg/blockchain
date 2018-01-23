@@ -34,20 +34,26 @@ def consensus():
     data = rsa.decrypt(cdata, blockchain.prikey)
 
     if not rsa.verify(data, sign, blockchain.nodes[node_id][1]):
-        print("VERITY ERROR")
-        # Terminate this function
-        pass
+        print("VERIFY ERROR")
+        response = {'message': "Verify Error"}
+        return jsonify(response), 400
 
     data = literal_eval(data.decode('utf8'))
     phase = data.get('phase')
 
     response = None
 
+    # to prevent replaying previous steps
+    if phase < blockchain.status[0]:
+        print("PREVIOUS STEPS")
+        response = {'message': "Previous Steps"}
+        return jsonify(response), 202
+
     if phase == 0:      # pre-prepare
         if node_id != blockchain.leader[0]:
             print("NOT LEADER ERROR")
-            # TODO : Terminate this function
-            pass
+            response = {'message': "Leader Error"}
+            return jsonify(response), 400
         # TODO : check either index is right (prevent replay attack)
         # get block
         block = data.get('block')
