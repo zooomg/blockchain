@@ -103,14 +103,15 @@ class Blockchain:
 
         return False
 
+    # TODO : show details; ex) phase #, more response code
     def block_thread(self, url, headers, data):
         response = requests.post(url, headers=headers, data=data)
 
-        if response.status_code == 201:
-            print("[PRE PREPARE] ", end="")
-            node_id = response.json()['id']
-            result = response.json()['result']
-            print(node_id, ":", result)
+        # if response.status_code == 201:
+        #     print("[PRE PREPARE] ", end="")
+        #     node_id = response.json()['id']
+        #     result = response.json()['result']
+        #     print(node_id, ":", result)
 
     # pre-prepare
     def pre_prepare(self):
@@ -150,6 +151,7 @@ class Blockchain:
             #     print(node_id, ":", result)
 
         self.status = [1, block, {str(block): {self.node_identifier}}, (0, 0)]
+        threading.Thread(target=self.prepare).start()
 
         return block
 

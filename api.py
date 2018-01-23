@@ -57,27 +57,20 @@ def consensus():
         # TODO : check either index is right (prevent replay attack)
         # get block
         block = data.get('block')
-        # block validation
-        valid = True    # TODO : validation function
-        if valid:
-            # update blockchain's view block to block
-            blockchain.current_block = block
-            # status reset
-            blockchain.status = [1, block, {str(block): {blockchain.leader[0], blockchain.node_identifier}}, (0, 0)]
-            # TODO : exec prepare phase
-            threading.Thread(target=blockchain.prepare).start()
-            # response
-            response = {'id': blockchain.node_identifier, 'result': True}   # block is valid
-            return jsonify(response), 201
-        else:
-            # response
-            response = {'id': blockchain.node_identifier, 'result': False}  # block is invalid
-            return jsonify(response), 201
+        # update blockchain's view block to block
+        blockchain.current_block = block
+        # status reset
+        blockchain.status = [1, block, {str(block): {blockchain.leader[0], blockchain.node_identifier}}, (0, 0)]
+        # TODO : exec prepare phase
+        threading.Thread(target=blockchain.prepare).start()
+        # response
+        response = {'id': blockchain.node_identifier, 'result': True}   # block is valid
+        return jsonify(response), 201
     elif phase == 1:    # prepare
         # get block
         block = data.get('block')
         # TODO : check either index is right (prevent replay attack)
-        # TODO : check either id is unique and block is same
+        # check either id is unique(to use set) and block is same
         if blockchain.status[2].get(str(block), None) is None:  # if new block
             blockchain.status[2][str(block)] = {node_id}
         else:                                                   # exist block
