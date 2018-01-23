@@ -18,7 +18,7 @@ class Blockchain:
         self.current_block = None           # current view block
         self.chain = []                     # current chain
         self.nodes = {}                     # connected nodes
-        self.status = [0, None, {}, (0, 0)]    # phase info [phase_idx, block, {str(block): [list(block's id)]}, (yes, no)]
+        self.status = [0, None, {}, (0, 0)] # phase info [phase_idx, block, {str(block): [list(block's id)]}, (yes, no)]
 
         # Generate a globally unique address for this node
         self.node_identifier = str(uuid4()).replace('-', '')

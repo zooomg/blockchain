@@ -70,12 +70,12 @@ def consensus():
         block = data.get('block')
         # TODO : check either index is right (prevent replay attack)
         # TODO : check either id is unique and block is same
-        if blockchain.status[1].get(str(block), None) is None:  # if new block
-            blockchain.status[1][str(block)] = {node_id}
+        if blockchain.status[2].get(str(block), None) is None:  # if new block
+            blockchain.status[2][str(block)] = {node_id}
         else:                                                   # exist block
-            blockchain.status[1][str(block)].add(node_id)
+            blockchain.status[2][str(block)].add(node_id)
         # TODO : when count is over 2/3 nodes, exec commit phase
-        if len(blockchain.nodes) * 2 < len(blockchain.status[2][str(blockchain.current_block)]) * 3:
+        if (len(blockchain.nodes) + 1) * 2 < len(blockchain.status[2][str(blockchain.current_block)]) * 3:
             blockchain.status[0] = 2
             # blockchain.commit(True)
     elif phase == 2:    # commit
