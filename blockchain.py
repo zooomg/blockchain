@@ -180,6 +180,8 @@ class Blockchain:
         sign = rsa.sign(str(data).encode('utf8'), self.prikey, 'SHA-1')
         headers = {'Content-Type': 'application/json'}
 
+        self.status[2][str(self.current_block)] = {self.leader[0], self.node_identifier}
+
         for node in self.nodes:
             url = 'http://' + self.nodes[node][0] + '/consensus'                # idx 0 = addr
             print("prepare: from", self.node_identifier, "to", url)
@@ -198,6 +200,10 @@ class Blockchain:
         :return: result
         """
         result = self.valid_block()
+        if result:
+            self.status[3][0].add(self.node_identifier)
+        else:
+            self.status[3][1].add(self.node_identifier)
 
         data = {'result': result, 'phase': 2, 'index': self.current_block.get('index')}
 

@@ -64,7 +64,7 @@ def consensus():
         # update blockchain's view block to block
         blockchain.current_block = block
         # status reset
-        blockchain.status = [1, block, {str(block): {blockchain.leader[0], blockchain.node_identifier}}, (set(), set())]
+        blockchain.status[0] = 1
         # TODO : exec prepare phase
         threading.Thread(target=blockchain.prepare).start()
         # response
