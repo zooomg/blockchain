@@ -232,6 +232,18 @@ class Blockchain:
 
         return self.last_block['index'] + 1
 
+    def valid_idx(self, idx):
+        """
+        Check it is true that given block's index is right
+
+        :param idx: Index of the given block
+        :return: True or False
+        """
+        if idx - 1 == self.last_block().get('index'):
+            return True
+        else:
+            return False
+
     @property
     def last_block(self):
         return self.chain[-1]
@@ -274,12 +286,6 @@ class Blockchain:
         guess = f'{last_proof}{proof}'.encode()
         guess_hash = hashlib.sha256(guess).hexdigest()
         return guess_hash[:4] == "0000"
-
-    def valid_idx(self,idx):
-        if idx - 1 == self.last_block().get('index'):
-            return True
-        else:
-            return False
 
 
 def init_genesis_block():

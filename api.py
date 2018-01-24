@@ -54,9 +54,13 @@ def consensus():
             print("NOT LEADER ERROR")
             response = {'message': "Leader Error"}
             return jsonify(response), 400
-        # TODO : check either index is right (prevent replay attack)
         # get block
         block = data.get('block')
+        # check either index is right (prevent replay attack)
+        block_idx = block.get('index')
+        if not blockchain.valid_idx(block_idx):
+            response = {'message': "WRONG INDEX OF BLOCK"}
+            return jsonify(response), 400
         # update blockchain's view block to block
         blockchain.current_block = block
         # status reset
@@ -69,7 +73,11 @@ def consensus():
     elif phase == 1:    # prepare
         # get block
         block = data.get('block')
-        # TODO : check either index is right (prevent replay attack)
+        # check either index is right (prevent replay attack)
+        block_idx = block.get('index')
+        if not blockchain.valid_idx(block_idx):
+            response = {'message': "WRONG INDEX OF BLOCK"}
+            return jsonify(response), 400
         # check either id is unique(to use set) and block is same
         if blockchain.status[2].get(str(block), None) is None:  # if new block
             blockchain.status[2][str(block)] = {node_id}
@@ -88,7 +96,11 @@ def consensus():
             blockchain.status[0] = 2
             threading.Thread(target=blockchain.commit).start()
     elif phase == 2:    # commit
-        # TODO : check either index is right (prevent replay attack)
+        # check either index is right (prevent replay attack)
+        block_idx = data.get('index')
+        if not blockchain.valid_idx(block_idx):
+            response = {'message': "WRONG INDEX OF BLOCK"}
+            return jsonify(response), 400
         # check either id is unique(to use set)
         result = literal_eval(data.get('result'))
         if result == True:
