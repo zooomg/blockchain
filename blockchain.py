@@ -275,6 +275,12 @@ class Blockchain:
         guess_hash = hashlib.sha256(guess).hexdigest()
         return guess_hash[:4] == "0000"
 
+    def valid_idx(self,idx):
+        if idx - 1 == self.last_block().get('index'):
+            return True
+        else:
+            return False
+
 
 def init_genesis_block():
     """
