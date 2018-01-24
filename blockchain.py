@@ -136,7 +136,7 @@ class Blockchain:
         :return: new block
         """
 
-        if self.leader[0] == self.node_identifier:
+        if self.leader[0] != self.node_identifier:
             self.status = [0, None, {}, (set(), set())]
             self.current_block = None
             self.transactions_buffer += self.current_transactions
