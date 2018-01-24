@@ -112,6 +112,7 @@ def consensus():
             # TODO : send result to mid server
             # TODO : reset the settings
             blockchain.transactions_buffer += blockchain.current_transactions
+            # TODO : leader change
             pass
     else:               # error
         pass
