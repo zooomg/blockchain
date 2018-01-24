@@ -239,7 +239,7 @@ class Blockchain:
         :param idx: Index of the given block
         :return: True or False
         """
-        if idx - 1 == self.last_block().get('index'):
+        if idx - 1 == self.last_block()['index']:
             return True
         else:
             return False
