@@ -60,7 +60,7 @@ def consensus():
         # update blockchain's view block to block
         blockchain.current_block = block
         # status reset
-        blockchain.status = [1, block, {str(block): {blockchain.leader[0], blockchain.node_identifier}}, (0, 0)]
+        blockchain.status = [1, block, {str(block): {blockchain.leader[0], blockchain.node_identifier}}, (set(), set())]
         # TODO : exec prepare phase
         threading.Thread(target=blockchain.prepare).start()
         # response
@@ -78,15 +78,41 @@ def consensus():
 
         response = {'id': blockchain.node_identifier, 'result': True}
 
-        # TODO : when count is over 2/3 nodes, exec commit phase
+        # 2/3 blocks before pre-prepare
+        if blockchain.current_block is None:
+            response = {'id': blockchain.node_identifier, 'result': False}
+            return jsonify(response), 201
+
+        # when count is over 2/3 nodes, exec commit phase
         if (len(blockchain.nodes) + 1) * 2 < len(blockchain.status[2][str(blockchain.current_block)]) * 3:
             blockchain.status[0] = 2
-            # blockchain.commit(True)
+            threading.Thread(target=blockchain.commit).start()
     elif phase == 2:    # commit
         # TODO : check either index is right (prevent replay attack)
-        # TODO : check either id is unique
-        result = data.get('result')
-        # TODO :when count is over 2/3 nodes, send result to mid server
+        # check either id is unique(to use set)
+        result = literal_eval(data.get('result'))
+        if result == True:
+            blockchain.status[3][0].add(node_id)
+        else:
+            blockchain.status[3][1].add(node_id)
+
+        # TODO : when True count is over 2/3 nodes, send result to mid server
+        if (len(blockchain.nodes) + 1) * 2 < len(blockchain.status[3][0]) * 3:
+            # TODO : add current block to chain
+            blockchain.chain.append(blockchain.current_block)
+            # TODO : send result to mid server
+            # reset the settings
+            blockchain.status = [0, None, {}, (set(), set())]
+            blockchain.current_block = None
+            blockchain.current_transactions = []
+            pass
+
+        # TODO : when False count is over 1/3 nodes, send result to mid server
+        if len(blockchain.nodes) + 1 < len(blockchain.status[3][0]) * 3:
+            # TODO : send result to mid server
+            # TODO : reset the settings
+            blockchain.transactions_buffer += blockchain.current_transactions
+            pass
     else:               # error
         pass
 

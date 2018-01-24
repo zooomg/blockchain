@@ -12,13 +12,14 @@ from time import sleep
 
 class Blockchain:
     def __init__(self, genesis_block):
-        self.leader = ()                    # id : addr pair
-        self.leader_idx = -1                # leader's idx
-        self.current_transactions = []      # tx
-        self.current_block = None           # current view block
-        self.chain = []                     # current chain
-        self.nodes = {}                     # connected nodes
-        self.status = [0, None, {}, (0, 0)] # phase info [phase_idx, block, {str(block): [list(block's id)]}, (yes, no)]
+        self.leader = ()                            # id : addr pair
+        self.leader_idx = -1                        # leader's idx
+        self.transactions_buffer = []               # whole tx
+        self.current_transactions = []              # tx of current block
+        self.current_block = None                   # current view block
+        self.chain = []                             # current chain
+        self.nodes = {}                             # connected nodes
+        self.status = [0, None, {}, (set(), set())] # phase info [phase_idx, block, {str(block): [list(block's id)]}, (set(yes_id), set(no_id))]
 
         # Generate a globally unique address for this node
         self.node_identifier = str(uuid4()).replace('-', '')
@@ -103,8 +104,22 @@ class Blockchain:
 
         return False
 
+    # TODO : make tight of validation
+    def valid_block(self):
+        """
+        Validation of the current block
+
+        :return: str(True) or str(False)
+        """
+        return str(True)
+
     # TODO : show details; ex) phase #, more response code
     def block_thread(self, url, headers, data):
+        """
+        Method for threading
+
+        :return: ?
+        """
         response = requests.post(url, headers=headers, data=data)
 
         # if response.status_code == 201:
@@ -120,6 +135,11 @@ class Blockchain:
 
         :return: new block
         """
+
+        self.current_transactions = self.transactions_buffer
+        for tx in self.current_transactions:
+            if tx in self.transactions_buffer:
+                self.transactions_buffer.remove(tx)
 
         # TODO : change block params
         block = {
@@ -144,13 +164,7 @@ class Blockchain:
 
             threading.Thread(target=self.block_thread, args=(url, headers, jdata)).start()
 
-            # if response.status_code == 201:
-            #     print("[PRE PREPARE] ", end="")
-            #     node_id = response.json()['id']
-            #     result = response.json()['result']
-            #     print(node_id, ":", result)
-
-        self.status = [1, block, {str(block): {self.node_identifier}}, (0, 0)]
+        self.status = [1, block, {str(block): {self.node_identifier}}, (set(), set())]
         threading.Thread(target=self.prepare).start()
 
         return block
@@ -174,22 +188,31 @@ class Blockchain:
             jdata = json.dumps(fdata)
 
             threading.Thread(target=self.block_thread, args=(url, headers, jdata)).start()
-            # response = requests.post(url, headers=headers, data=jdata)
-
-            # if response.status_code == 201:
-            #     print("[PREPARE] ", end="")
-            #     node_id = response.json()['id']
-            #     result = response.json()['result']
-            #     print(node_id, ":", result)
 
         return self.current_block
 
-    def commit(self, result):
+    def commit(self):
         """
-        Multicast the result of node
+        Multicast the result of the current node
 
         :return: result
         """
+        result = self.valid_block()
+
+        data = {'result': result, 'phase': 2, 'index': self.current_block.get('index')}
+
+        sign = rsa.sign(str(data).encode('utf8'), self.prikey, 'SHA-1')
+        headers = {'Content-Type': 'application/json'}
+
+        for node in self.nodes:
+            url = 'http://' + self.nodes[node][0] + '/consensus'                # idx 0 = addr
+            print("commit: from", self.node_identifier, "to", url)
+            cdata = rsa.encrypt(str(data).encode('utf8'), self.nodes[node][1])  # idx 1 = pubkey
+            fdata = {'data': list(cdata), 'sign': list(sign), 'id': self.node_identifier}
+            jdata = json.dumps(fdata)
+
+            threading.Thread(target=self.block_thread, args=(url, headers, jdata)).start()
+
         return result
 
     def new_transaction(self, sender, recipient, amount):
@@ -201,7 +224,7 @@ class Blockchain:
         :param amount: Amount
         :return: The index of the Block that will hold this transaction
         """
-        self.current_transactions.append({
+        self.transactions_buffer.append({
             'sender': sender,
             'recipient': recipient,
             'amount': amount,
