@@ -160,7 +160,7 @@ class Blockchain:
 
         # check the time (prevent DDoS attack)
         block_time = block.get('timestamp')
-        if not blockchain.valid_timestamp(block_time):
+        if not self.valid_timestamp(block_time):
             self.transactions_buffer += self.current_transactions
             return None
 
