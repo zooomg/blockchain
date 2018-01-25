@@ -4,8 +4,8 @@ from uuid import uuid4
 
 import requests
 
-nodes_addr = ["http://172.17.64.110:5000",
-              "http://172.17.64.110:5001",
+nodes_addr = ["http://172.17.64.229:5000",
+              "http://172.17.64.229:5001",
               "http://172.17.67.233:5000",
               "http://172.17.67.233:5001"]
 

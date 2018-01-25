@@ -136,6 +136,7 @@ class Blockchain:
         :return: new block
         """
 
+        # In fact, it is useless
         if self.leader[0] != self.node_identifier:
             self.status = [0, None, {}, (set(), set())]
             self.current_block = None
@@ -263,7 +264,7 @@ class Blockchain:
         :param time: Time of the given block
         :return: True or False
         """
-        if time - 120 < self.chain[-1].get('timestamp'):
+        if time - 20 < self.chain[-1].get('timestamp'):
             return False
         else:
             return True

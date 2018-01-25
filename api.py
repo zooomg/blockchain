@@ -59,11 +59,13 @@ def consensus():
         # check either index is right (prevent replay attack)
         block_idx = block.get('index')
         if not blockchain.valid_idx(block_idx):
+            print("INVALID INDEX ERROR")
             response = {'message': "WRONG INDEX OF BLOCK"}
             return jsonify(response), 400
         # check the time (prevent DDoS attack)
         block_time = block.get('timestamp')
         if not blockchain.valid_timestamp(block_time):
+            print("WRONG TIMESTAMP ERROR")
             response = {'message': "WRONG TIMESTAMP OF BLOCK"}
             return jsonify(response), 400
         # update blockchain's view block to block
