@@ -138,9 +138,6 @@ class Blockchain:
 
         # In fact, it is useless
         if self.leader[0] != self.node_identifier:
-            self.status = [0, None, {}, (set(), set())]
-            self.current_block = None
-            self.transactions_buffer += self.current_transactions
             return None
 
         self.current_transactions = self.transactions_buffer
@@ -154,6 +151,18 @@ class Blockchain:
             'timestamp': time(),
             'transactions': self.current_transactions,
         }
+
+        # check either index is right (prevent replay attack)
+        block_idx = block.get('index')
+        if not self.valid_idx(block_idx):
+            self.transactions_buffer += self.current_transactions
+            return None
+
+        # check the time (prevent DDoS attack)
+        block_time = block.get('timestamp')
+        if not blockchain.valid_timestamp(block_time):
+            self.transactions_buffer += self.current_transactions
+            return None
 
         self.current_block = block
 
