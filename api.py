@@ -7,7 +7,7 @@ import requests
 from flask import Flask, jsonify, request
 import threading
 import signal
-from time import sleep
+from time import sleep, time
 
 import blockchain
 
@@ -60,6 +60,11 @@ def consensus():
         block_idx = block.get('index')
         if not blockchain.valid_idx(block_idx):
             response = {'message': "WRONG INDEX OF BLOCK"}
+            return jsonify(response), 400
+        # check the time (prevent DDoS attack)
+        block_time = block.get('timestamp')
+        if not blockchain.valid_timestamp(block_time):
+            response = {'message': "WRONG TIMESTAMP OF BLOCK"}
             return jsonify(response), 400
         # update blockchain's view block to block
         blockchain.current_block = block

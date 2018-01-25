@@ -256,6 +256,18 @@ class Blockchain:
         else:
             return False
 
+    def valid_timestamp(self, time):
+        """
+        Check the given block's timestamp to prevent DDoS attack
+
+        :param time: Time of the given block
+        :return: True or False
+        """
+        if time - 120 < self.chain[-1].get('timestamp'):
+            return False
+        else:
+            return True
+
     @property
     def last_block(self):
         return self.chain[-1]
