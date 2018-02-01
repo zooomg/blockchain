@@ -20,6 +20,7 @@ class Blockchain:
         self.chain = []                             # current chain
         self.nodes = {}                             # connected nodes
         self.status = [0, None, {}, (set(), set())] # phase info [phase_idx, block, {str(block): [list(block's id)]}, (set(yes_id), set(no_id))]
+        self.utxo = {}                              # utxo (client_id,checked pair)
 
         # Generate a globally unique address for this node
         self.node_identifier = str(uuid4()).replace('-', '')
@@ -237,22 +238,57 @@ class Blockchain:
 
         return result
 
-    def new_transaction(self, sender, recipient, amount):
+    def add_utxo(self, utxo):
+        """
+        Creates a new utxo
+
+        :param utxo: Utxo of new client
+        """
+        # client_id(key) and True or False(value, check he or she complete voting) pair(it will be changed)
+        cdata = rsa.decrypt(utxo,self.prikey)
+        data = literal_eval(cdata.decode('utf8'))
+        if exist_utxo(data['utxo']):
+            self.utxo[data['utxo']] = False
+        else:
+            return False
+
+    def exist_utxo(self, utxo):
+        if utxo in self.utxo:
+            return False
+        else:
+            return True
+
+    def new_transaction(self, transaction):
         """
         Creates a new transaction to go into the next mined Block
 
         :param sender: Address of the Sender
-        :param recipient: Address of the Recipient
-        :param amount: Amount
+        :param receiver: Address of the Receiver
+        :param sign: Sign of Sender
         :return: The index of the Block that will hold this transaction
         """
+        # TODO: transaction append(After meeting)
+        data = rsa.decrypt(transaction,self.prikey)
+        transaction_tmp = literal_eval(data.decode('utf8'))
+        if valid_transaction(transaction_tmp):
+
         self.transactions_buffer.append({
             'sender': sender,
-            'recipient': recipient,
-            'amount': amount,
+            'receiver': receiver,
+            'sign': sign,
         })
 
         return self.last_block['index'] + 1
+
+    def valid_transaction(self, transaction):
+        """
+        Check it is true that given tx is right
+
+        :param transaction: the given tx
+        :return: True or False
+        """
+        # TODO: transaction check(After meeting)
+        if transaction
 
     def valid_idx(self, idx):
         """

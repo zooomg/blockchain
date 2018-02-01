@@ -72,7 +72,7 @@ def consensus():
         blockchain.current_block = block
         # status reset
         blockchain.status[0] = 1
-        # TODO : exec prepare phase
+        # exec prepare phase
         threading.Thread(target=blockchain.prepare).start()
         # response
         response = {'id': blockchain.node_identifier, 'result': True}   # block is valid
@@ -115,9 +115,9 @@ def consensus():
         else:
             blockchain.status[3][1].add(node_id)
 
-        # TODO : when True count is over 2/3 nodes, send result to mid server
+        # when True count is over 2/3 nodes, send result to mid server
         if (len(blockchain.nodes) + 1) * 2 < len(blockchain.status[3][0]) * 3:
-            # TODO : add current block to chain
+            # add current block to chain
             blockchain.chain.append(blockchain.current_block)
             # TODO : send result to mid server
             # reset the settings
@@ -126,7 +126,7 @@ def consensus():
             blockchain.current_transactions = []
             pass
 
-        # TODO : when False count is over 1/3 nodes, send result to mid server
+        # when False count is over 1/3 nodes, send result to mid server
         if len(blockchain.nodes) + 1 < len(blockchain.status[3][0]) * 3:
             # TODO : send result to mid server
             # TODO : reset the settings
@@ -167,18 +167,24 @@ def consensus():
 #     }
 #     return jsonify(response), 200
 
+@app.route('/utxo/new', methods=['POST'])
+def new_utxo():
+    values = request.get_json()
+    if blockchain.add_utxo(values):
+        response = {'message': f'UTxO will be added to list'}
+        return jsonify(response), 201
+    else:
+        response = {'message': f'Invalid UTxO'}
+        return jsonify(response), 400
+
 
 @app.route('/transactions/new', methods=['POST'])
 def new_transaction():
     values = request.get_json()
 
-    # Check that the required fields are in the POST'ed data
-    required = ['sender', 'recipient', 'amount']
-    if not all(k in values for k in required):
-        return 'Missing values', 400
-
+    # TODO : After jwt
     # Create a new Transaction
-    index = blockchain.new_transaction(values['sender'], values['recipient'], values['amount'])
+    index = blockchain.new_transaction(values)
 
     response = {'message': f'Transaction will be added to Block {index}'}
     return jsonify(response), 201
