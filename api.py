@@ -184,7 +184,12 @@ def new_transaction():
 
     # TODO : After jwt
     # Create a new Transaction
-    index = blockchain.new_transaction(values)
+    if blockchain.new_transaction(values):
+        response = {'message': f'transaction will be added to buffer'}
+        return jsonify(response), 201
+    else:
+        response = {'message': f'Invalid transaction'}
+        return jsonify(response), 400
 
     response = {'message': f'Transaction will be added to Block {index}'}
     return jsonify(response), 201

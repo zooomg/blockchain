@@ -271,12 +271,13 @@ class Blockchain:
         data = rsa.decrypt(transaction,self.prikey)
         transaction_tmp = literal_eval(data.decode('utf8'))
         if valid_transaction(transaction_tmp):
-
-        self.transactions_buffer.append({
-            'sender': sender,
-            'receiver': receiver,
-            'sign': sign,
-        })
+            self.transactions_buffer.append({
+                'sender': transaction_tmp.get('rand_id'),
+                'receiver': transaction_tmp.get('candidate'),
+            })
+            return True
+        else:
+            return False
 
         return self.last_block['index'] + 1
 
@@ -288,7 +289,13 @@ class Blockchain:
         :return: True or False
         """
         # TODO: transaction check(After meeting)
-        if transaction
+        if transaction.get('rand_id') in self.utxo:
+            if not self.utxo[transaction.get('rand_id')]:
+                return True
+            else:
+                return False
+        else:
+            return False
 
     def valid_idx(self, idx):
         """
