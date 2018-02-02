@@ -261,7 +261,7 @@ class Blockchain:
         data = literal_eval(data.decode('utf8'))
         utxo = data['utxo']
 
-        if not exist_utxo(utxo):
+        if not self.exist_utxo(utxo):
             self.utxo[utxo] = False
         else:
             return False
