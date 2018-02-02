@@ -1,6 +1,5 @@
 import json
 from urllib.parse import urlparse
-from uuid import uuid4
 
 import requests
 

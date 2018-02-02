@@ -177,6 +177,11 @@ def new_utxo():
         response = {'message': f'Invalid UTxO'}
         return jsonify(response), 400
 
+@app.route('/utxo/list', methods=['GET'])
+def get_utxo():
+    response = {'utxo': blockchain.utxo}
+    return response, 200
+
 
 @app.route('/transactions/new', methods=['POST'])
 def new_transaction():
