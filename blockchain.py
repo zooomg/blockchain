@@ -272,7 +272,7 @@ class Blockchain:
         else:
             return False
 
-    def new_transaction(self, transaction):
+    def new_transaction(self, fdata):
         """
         Creates a new transaction to go into the next mined Block
 
