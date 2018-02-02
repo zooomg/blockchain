@@ -282,20 +282,28 @@ class Blockchain:
         :return: The index of the Block that will hold this transaction
         """
         # TODO: transaction append(After meeting)
-        data = rsa.decrypt(transaction,self.prikey)
-        transaction_tmp = literal_eval(data.decode('utf8'))
-        if self.valid_transaction(transaction_tmp):
+        cdata = bytes(fdata['data'])
+        sign = bytes(fdata['sign'])
+
+        # Error
+        if not rsa.verify(cdata, sign, self.auth['pubkey']):
+            pass
+
+        data = rsa.decrypt(cdata, self.prikey)
+        data = literal_eval(data.decode('utf8'))
+        rand_id = data['rand_id']
+        candidate = data['candidate']
+
+        if self.valid_transaction(rand_id):
             self.transactions_buffer.append({
-                'sender': transaction_tmp.get('rand_id'),
-                'receiver': transaction_tmp.get('candidate'),
+                'sender': rand_id,
+                'receiver': candidate
             })
             return True
         else:
             return False
 
-        return self.last_block['index'] + 1
-
-    def valid_transaction(self, transaction):
+    def valid_transaction(self, rand_id):
         """
         Check it is true that given tx is right
 
@@ -303,8 +311,8 @@ class Blockchain:
         :return: True or False
         """
         # TODO: transaction check(After meeting)
-        if transaction.get('rand_id') in self.utxo:
-            if not self.utxo[transaction.get('rand_id')]:
+        if rand_id in self.utxo:
+            if not self.utxo[rand_id]:
                 return True
             else:
                 return False
