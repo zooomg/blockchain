@@ -256,7 +256,7 @@ class Blockchain:
         if not rsa.verify(cdata, sign, self.auth['pubkey']):
             pass
 
-        data = rsa.decrypt(cdata, self.prikey)
+        data = rsa.decrypt(cdata, self.prikey).decode('utf8')
         utxo = data['utxo']
 
         if not exist_utxo(utxo):
