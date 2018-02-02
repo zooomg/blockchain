@@ -179,7 +179,7 @@ def new_utxo():
 
 @app.route('/utxo/list', methods=['GET'])
 def get_utxo():
-    response = {'utxo': blockchain.utxo}
+    response = {'utxo': list(blockchain.utxo.keys())}
     return response, 200
 
 

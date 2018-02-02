@@ -3,14 +3,14 @@ from urllib.parse import urlparse
 
 import requests
 
-# nodes_addr = ["http://172.17.64.229:5000",
-#               "http://172.17.64.229:5001",
-#               "http://172.17.67.233:5000",
-#               "http://172.17.67.233:5001"]
+nodes_addr = ["http://172.17.64.185:5000",
+              "http://172.17.64.185:5001",
+              "http://172.17.67.233:5000",
+              "http://172.17.67.233:5001"]
 
-nodes_addr = ["http://127.0.0.1:5002",
-              "http://127.0.0.1:5000",
-              "http://127.0.0.1:5001"]
+# nodes_addr = ["http://127.0.0.1:5002",
+#               "http://127.0.0.1:5000",
+#               "http://127.0.0.1:5001"]
 
 leader_id = None
 leader_idx = -1
@@ -51,7 +51,6 @@ def send_info():
 
         if response.status_code == 201:
             msg = response.json()['message']
-            total_nodes = response.json()['total_nodes']
             print(msg)
             for t in total_nodes:
                 print(t)
