@@ -284,7 +284,7 @@ class Blockchain:
         # TODO: transaction append(After meeting)
         data = rsa.decrypt(transaction,self.prikey)
         transaction_tmp = literal_eval(data.decode('utf8'))
-        if valid_transaction(transaction_tmp):
+        if self.valid_transaction(transaction_tmp):
             self.transactions_buffer.append({
                 'sender': transaction_tmp.get('rand_id'),
                 'receiver': transaction_tmp.get('candidate'),
