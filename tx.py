@@ -77,7 +77,7 @@ def init_uxto():
         url = node.get('address') + '/utxo/new'
         print(url)
         node_pubkey = rsa.PublicKey(**node.get('pubkey'))
-        cdata = rsa.encrypt(data.encode('utf8'), node_pubkey)
+        cdata = rsa.encrypt(str(data).encode('utf8'), node_pubkey)
         sign = rsa.sign(cdata, prikey, 'SHA-1')
         fdata = {'data': list(cdata), 'sign': list(sign)}
         jdata = json.dumps(fdata)
