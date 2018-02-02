@@ -58,7 +58,7 @@ def send_tx():
     for utxo in utxo_list:
         for node in nodes:
             url = node.get('address') + '/transactions/new'
-            data = {'rand_id': utxo, 'candidate': candidate[random.randint(0, 2)]}
+            data = {'rand_id': utxo, 'candidate': candidate_list[random.randint(0, 2)]}
             node_pubkey = rsa.PublicKey(**node.get('pubkey'))
             cdata = rsa.encrypt(str(data).encode('utf8'), node_pubkey)
             sign = rsa.sign(cdata, prikey, 'SHA-1')
