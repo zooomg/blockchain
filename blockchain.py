@@ -250,13 +250,13 @@ class Blockchain:
         """
         # client_id(key) and True or False(value, check he or she complete voting) pair(it will be changed)
         cdata = bytes(fdata['data'])
-        data = rsa.decrypt(cdata, self.prikey)
         sign = bytes(fdata['sign'])
 
         # Error
-        if not rsa.verify(data, sign, self.auth['pubkey']):
+        if not rsa.verify(cdata, sign, self.auth['pubkey']):
             pass
 
+        data = rsa.decrypt(cdata, self.prikey)
         utxo = data['utxo']
 
         if not exist_utxo(utxo):

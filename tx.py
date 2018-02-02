@@ -78,7 +78,7 @@ def init_uxto():
         print(url)
         node_pubkey = rsa.PublicKey(**node.get('pubkey'))
         cdata = rsa.encrypt(str(data).encode('utf8'), node_pubkey)
-        sign = rsa.sign(str(cdata).encode('utf8'), prikey, 'SHA-1')
+        sign = rsa.sign(cdata, prikey, 'SHA-1')
         fdata = {'data': list(cdata), 'sign': list(sign)}
         jdata = json.dumps(fdata)
         
