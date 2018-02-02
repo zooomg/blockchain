@@ -4,6 +4,7 @@ import rsa
 from time import time
 from urllib.parse import urlparse
 from uuid import uuid4
+from ast import literal_eval
 
 import requests
 import threading
@@ -259,7 +260,6 @@ class Blockchain:
         data = rsa.decrypt(cdata, self.prikey)
         data = literal_eval(data.decode('utf8'))
         utxo = data['utxo']
-        print(utxo)
 
         if not exist_utxo(utxo):
             self.utxo[utxo] = False
