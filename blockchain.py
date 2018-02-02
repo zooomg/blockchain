@@ -258,6 +258,7 @@ class Blockchain:
 
         data = rsa.decrypt(cdata, self.prikey).decode('utf8')
         utxo = data['utxo']
+        print(utxo)
 
         if not exist_utxo(utxo):
             self.utxo[utxo] = False
