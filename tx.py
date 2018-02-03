@@ -5,14 +5,15 @@ from urllib.parse import urlparse
 import requests
 import random
 
-nodes_addr = ["http://172.17.64.185:5000",
-              "http://172.17.64.185:5001",
-              "http://172.17.67.233:5000",
-              "http://172.17.67.233:5001"]
+# nodes_addr = ["http://172.17.64.185:5000",
+#               "http://172.17.64.185:5001",
+#               "http://172.17.67.233:5000",
+#               "http://172.17.67.233:5001"]
 
-# nodes_addr = ["http://127.0.0.1:5002",
-#               "http://127.0.0.1:5000",
-#               "http://127.0.0.1:5001"]
+nodes_addr = ["http://127.0.0.1:5002",
+              "http://127.0.0.1:5000",
+              "http://127.0.0.1:5001",
+              "http://127.0.0.1:5003"]
 
 utxo_list = []
 candidate_list = ['X', 'Y', 'Z']
@@ -92,7 +93,7 @@ def init_uxto():
             print(msg)
 
 init_key()
-print(pubkey)
+
 get_info()
 
 init_uxto()
@@ -100,5 +101,7 @@ init_uxto()
 init_uxto()
 init_uxto()
 init_uxto()
+
+print(utxo_list)
 
 send_tx()

@@ -122,15 +122,17 @@ def consensus():
             # TODO : send result to mid server
             # reset the settings
             blockchain.status = [0, None, {}, (set(), set())]
+            blockchain.transactions_buffer = [x for x in blockchain.transactions_buffer if x not in blockchain.current_transactions]
             blockchain.current_block = None
             blockchain.current_transactions = []
             pass
 
         # when False count is over 1/3 nodes, send result to mid server
-        if len(blockchain.nodes) + 1 < len(blockchain.status[3][0]) * 3:
+        if len(blockchain.nodes) + 1 < len(blockchain.status[3][1]) * 3:
             # TODO : send result to mid server
             # TODO : reset the settings
             blockchain.transactions_buffer += blockchain.current_transactions
+            blockchain.current_transactions = []
             # TODO : leader change
             pass
     else:               # error
@@ -201,6 +203,11 @@ def new_transaction():
     response = {'message': f'Transaction will be added to Block {index}'}
     return jsonify(response), 201
 
+
+@app.route('/transactions/list', methods=['GET'])
+def get_transactions():
+    response = {'utxo': blockchain.transactions_buffer}
+    return jsonify(response), 200
 
 # @app.route('/transactions/new', methods=['POST'])
 # def new_transaction():
@@ -318,4 +325,4 @@ if __name__ == '__main__':
     args = parser.parse_args()
     port = args.port
 
-    app.run(host='0.0.0.0', port=port)
+    app.run(host='127.0.0.1', port=port)

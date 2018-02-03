@@ -146,10 +146,10 @@ class Blockchain:
         if self.leader[0] != self.node_identifier:
             return None
 
-        self.current_transactions = self.transactions_buffer
-        for tx in self.current_transactions:
-            if tx in self.transactions_buffer:
-                self.transactions_buffer.remove(tx)
+        self.current_transactions.append(self.transactions_buffer.pop())
+        self.current_transactions.append(self.transactions_buffer.pop())
+
+        print(self.transactions_buffer)
 
         # TODO : change block params
         block = {
@@ -162,12 +162,14 @@ class Blockchain:
         block_idx = block.get('index')
         if not self.valid_idx(block_idx):
             self.transactions_buffer += self.current_transactions
+            self.current_transactions = []
             return None
 
         # check the time (prevent DDoS attack)
         block_time = block.get('timestamp')
         if not self.valid_timestamp(block_time):
             self.transactions_buffer += self.current_transactions
+            self.current_transactions = []
             return None
 
         self.current_block = block
