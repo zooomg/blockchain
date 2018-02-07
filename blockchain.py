@@ -5,6 +5,7 @@ from time import time
 from urllib.parse import urlparse
 from uuid import uuid4
 from ast import literal_eval
+import const
 
 import requests
 import threading
@@ -13,6 +14,8 @@ from time import sleep
 
 class Blockchain:
     def __init__(self, genesis_block):
+        self.const.leader_time = 7                  # const block gen time
+        self.const.node_time = 15                   # const timeout
         self.leader = ()                            # id : addr pair
         self.leader_idx = -1                        # leader's idx
         self.transactions_buffer = []               # whole tx
@@ -35,6 +38,11 @@ class Blockchain:
 
         # Create the genesis block
         self.chain.append(genesis_block)
+
+        if self.leader[0] == self.node_identifier:
+            self.block_generate(self.const.leader_time)
+        else:
+            self.block_generate(self.const.node_time)
 
     def register_node(self, node_id, node_addr, node_pubkey):
         """
@@ -146,8 +154,10 @@ class Blockchain:
         if self.leader[0] != self.node_identifier:
             return None
 
-        self.current_transactions.append(self.transactions_buffer.pop())
-        self.current_transactions.append(self.transactions_buffer.pop())
+        if len(self.transactions_buffer) > 0:
+            self.current_transactions.append(self.transactions_buffer.pop())
+        if len(self.transactions_buffer) > 0:
+            self.current_transactions.append(self.transactions_buffer.pop())
 
         print(self.transactions_buffer)
 
@@ -340,10 +350,27 @@ class Blockchain:
         :param time: Time of the given block
         :return: True or False
         """
-        if time - 20 < self.chain[-1].get('timestamp'):
+        if time - 5 < self.chain[-1].get('timestamp'):
             return False
         else:
             return True
+
+    def block_generate(self, time):
+        n = 0
+        while True:
+            n+=1
+            if n == time:
+                if time == self.const.leader_time:
+                    n = 0
+                    if len(self.transactions_buffer) > 0:
+                        self.pre_prepare()
+                        
+                        signal.pause()
+                    else:
+
+                if time == self.const.node_time:
+                    n = 0
+            sleep(1)
 
     @property
     def last_block(self):
@@ -403,6 +430,9 @@ def init_genesis_block():
         'transactions': [],
     }
     return block
+
+
+
 
 # signal ex
 # signal.signal(signal.SIGALRM,handler)
