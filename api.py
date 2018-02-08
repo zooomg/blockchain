@@ -307,10 +307,42 @@ def nodes_resolve():
     return jsonify(response), 200
 
 
-@app.route('/nodes/leader', methods=['GET'])
+@app.route('/nodes/leader/list', methods=['GET'])
 def get_leader():
     response = {'nodes': blockchain.leader}
     return jsonify(response), 200
+
+
+@app.route('/nodes/leader/heartbeat', methods=['POST'])
+def headerbeat():
+    # TODO : fix this
+    values = request.get_json()
+
+    nodes = values.get('nodes')
+    leader_idx = values.get('leader_idx')
+    blockchain.leader_idx = leader_idx
+
+    if nodes is None:
+        return "Error: Please supply a valid list of nodes", 400
+
+    for node in nodes:
+        node_id = node.get('id')
+        node_addr = node.get('address')
+        node_pubkey = rsa.PublicKey(**node.get('pubkey'))
+        is_leader = node.get('leader')
+
+        if is_leader is True:
+            blockchain.leader = (node_id, node_addr)
+            blockchain.consensus_start()
+
+        if node_id != blockchain.node_identifier:
+            blockchain.register_node(node_id, node_addr, node_pubkey)
+
+    response = {
+        'message': 'New nodes have been added',
+        'total_nodes': list(blockchain.nodes.keys()),
+    }
+    return jsonify(response), 201
 
 
 @app.route('/mine', methods=['GET'])
