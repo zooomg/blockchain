@@ -5,7 +5,6 @@ from time import time
 from urllib.parse import urlparse
 from uuid import uuid4
 from ast import literal_eval
-import const
 
 import requests
 import threading
@@ -39,11 +38,6 @@ class Blockchain:
         # Create the genesis block
         self.chain.append(genesis_block)
 
-        if self.leader[0] == self.node_identifier:
-            threading.Thread(target=self.block_generate).start()
-        else:
-            threading.Thread(target=self.timeout).start()
-
     def register_node(self, node_id, node_addr, node_pubkey):
         """
         Add a new node to the list of nodes
@@ -54,6 +48,14 @@ class Blockchain:
 
         parsed_url = urlparse(node_addr)
         self.nodes[node_id] = (parsed_url.netloc, node_pubkey)
+
+
+    def consensus_start(self):
+        if self.leader[0] == self.node_identifier:
+            threading.Thread(target=self.block_generate).start()
+        else:
+            threading.Thread(target=self.timeout).start()
+
 
     def valid_chain(self, chain):
         """

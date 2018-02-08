@@ -277,6 +277,7 @@ def register_nodes():
 
         if is_leader is True:
             blockchain.leader = (node_id, node_addr)
+            blockchain.consensus_start()
 
         if node_id != blockchain.node_identifier:
             blockchain.register_node(node_id, node_addr, node_pubkey)
