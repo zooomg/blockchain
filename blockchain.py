@@ -13,8 +13,10 @@ from time import sleep
 
 class Blockchain:
     def __init__(self, genesis_block):
+        self.heartbeat = -1
         self.lemonbomb = -1                         # thread_id of timer something
         self.is_sexbomb = False                     # global variable for checking consensus
+        self.are_sexbomb = False
         self.leader = ()                            # id : addr pair
         self.leader_idx = -1                        # leader's idx
         self.transactions_buffer = []               # whole tx
@@ -358,7 +360,7 @@ class Blockchain:
             return False
         else:
             return True
-
+    # TODO: TODODODODODODODODODODODODODODO
     def block_generate(self):
         self.lemonbomb = threading.get_ident()
         n = 0
@@ -369,6 +371,8 @@ class Blockchain:
                 if len(self.transactions_buffer) > 0:
                     self.pre_prepare()
                     signal.pause()
+                else:
+
             sleep(1)
 
     def timeout(self):
@@ -383,6 +387,8 @@ class Blockchain:
             if self.is_sexbomb:
                 n = 0
                 signal.pause()
+        def restart():
+            n = 0
 
     @property
     def last_block(self):
