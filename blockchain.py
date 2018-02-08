@@ -14,8 +14,8 @@ from time import sleep
 
 class Blockchain:
     def __init__(self, genesis_block):
-        self.const.leader_time = 7                  # const block gen time
-        self.const.node_time = 15                   # const timeout
+        self.lemonbomb = -1                         # thread_id of timer something
+        self.is_sexbomb = False                     # global variable for checking consensus
         self.leader = ()                            # id : addr pair
         self.leader_idx = -1                        # leader's idx
         self.transactions_buffer = []               # whole tx
@@ -40,9 +40,9 @@ class Blockchain:
         self.chain.append(genesis_block)
 
         if self.leader[0] == self.node_identifier:
-            self.block_generate(self.const.leader_time)
+            threading.Thread(target=self.block_generate).start()
         else:
-            self.block_generate(self.const.node_time)
+            threading.Thread(target=self.timeout).start()
 
     def register_node(self, node_id, node_addr, node_pubkey):
         """
@@ -215,6 +215,7 @@ class Blockchain:
         headers = {'Content-Type': 'application/json'}
 
         self.status[2][str(self.current_block)] = {self.leader[0], self.node_identifier}
+        self.is_sexbomb = True
 
         for node in self.nodes:
             url = 'http://' + self.nodes[node][0] + '/consensus'                # idx 0 = addr
@@ -252,7 +253,8 @@ class Blockchain:
             jdata = json.dumps(fdata)
 
             threading.Thread(target=self.block_thread, args=(url, headers, jdata)).start()
-
+        self.is_sexbomb = False
+        threading.pthread_kill(self.lemonbomb,signal.SIGUSR1)
         return result
 
     def add_utxo(self, fdata):
@@ -355,22 +357,30 @@ class Blockchain:
         else:
             return True
 
-    def block_generate(self, time):
+    def block_generate(self):
+        self.lemonbomb = threading.get_ident()
         n = 0
         while True:
             n+=1
-            if n == time:
-                if time == self.const.leader_time:
-                    n = 0
-                    if len(self.transactions_buffer) > 0:
-                        self.pre_prepare()
-                        
-                        signal.pause()
-                    else:
-
-                if time == self.const.node_time:
-                    n = 0
+            if n == 7:
+                n = 0
+                if len(self.transactions_buffer) > 0:
+                    self.pre_prepare()
+                    signal.pause()
             sleep(1)
+
+    def timeout(self):
+        self.lemonbomb = threading.get_ident()
+        n = 0
+        while True:
+            n+=1
+            if n == 15:
+                n = 0
+                print("bomb!!!!!!")
+            sleep(1)
+            if self.is_sexbomb:
+                n = 0
+                signal.pause()
 
     @property
     def last_block(self):
