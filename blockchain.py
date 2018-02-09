@@ -369,7 +369,7 @@ class Blockchain:
             if n == 7:
                 n = 0
                 if len(self.transactions_buffer) > 0:
-                    self.pre_prepare()
+                    threading.Thread(target=self.pre_prepare).start()
                     print("[Block Generate] : PAUSE!!!!!!!")
                     signal.pause()
                     print("[Block Generate] : WAKE UP!!!!!!!")
