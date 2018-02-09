@@ -1,6 +1,6 @@
 import json
 from urllib.parse import urlparse
-
+import threading
 import requests
 
 nodes_addr = ["http://172.17.67.233:5000",
@@ -48,14 +48,17 @@ def send_info():
 
     for node in nodes_addr:
         url = node + '/nodes/register'
-        response = requests.post(url, headers=headers, data=jdata)
+        threading.Thread(target=data_thread, args=(url, headers, jdata)).start()
 
-        if response.status_code == 201:
-            msg = response.json()['message']
-            total_nodes = response.json()['total_nodes']
-            print(msg)
-            for t in total_nodes:
-                print(t)
+def data_thread(url, headers, data):
+    response = requests.post(url, headers=headers, data=data)
+
+    if response.status_code == 201:
+        msg = response.json()['message']
+        total_nodes = response.json()['total_nodes']
+        print(msg)
+        for t in total_nodes:
+            print(t)
 
 get_info()
 

@@ -87,7 +87,7 @@ def init_uxto():
         threading.Thread(target=data_thread, args=(url, headers, jdata)).start()
 
 def data_thread(url, headers, data):
-    response = requests.post(url, headers=headers, data=jdata)
+    response = requests.post(url, headers=headers, data=data)
 
     if response.status_code == 201:
         msg = response.json()['message']
