@@ -258,7 +258,7 @@ class Blockchain:
 
             threading.Thread(target=self.block_thread, args=(url, headers, jdata)).start()
         self.is_sexbomb = False
-        signal.pthread_kill(self.lemonbomb,signal.SIGUSR1)
+        signal.pthread_kill(self.lemonbomb,signal.SIGCONT)
         return result
 
     def add_utxo(self, fdata):
@@ -370,7 +370,9 @@ class Blockchain:
                 n = 0
                 if len(self.transactions_buffer) > 0:
                     self.pre_prepare()
+                    print("[Block Generate] : PAUSE!!!!!!!")
                     signal.pause()
+                    print("[Block Generate] : WAKE UP!!!!!!!")
                 else:
                     self.heartbeat += 1
                     data = {'heartbeat': self.heartbeat}
@@ -398,7 +400,9 @@ class Blockchain:
 
             if self.is_sexbomb:
                 n = 0
+                print("[Timeout] : PAUSE!!!!!!!")
                 signal.pause()
+                print("[Timeout] : WAKE UP!!!!!!!")
 
             n += 1
             if n == 15:
