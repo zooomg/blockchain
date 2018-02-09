@@ -4,6 +4,7 @@ from uuid import uuid4
 from urllib.parse import urlparse
 import requests
 import random
+import threading
 
 nodes_addr = ["http://172.17.67.233:5000",
               "http://172.17.67.233:5001",
@@ -66,10 +67,7 @@ def send_tx():
             fdata = {'data': list(cdata), 'sign': list(sign)}
             jdata = json.dumps(fdata)
 
-            response = requests.post(url, headers=headers, data=jdata)
-
-            if response.status_code == 201:
-                msg = response.json()['message']
+            threading.Thread(target=data_thread, args=(url, headers, jdata)).start()
 
 def init_uxto():
     utxo = str(uuid4()).replace('-', '')
@@ -86,11 +84,14 @@ def init_uxto():
         fdata = {'data': list(cdata), 'sign': list(sign)}
         jdata = json.dumps(fdata)
         
-        response = requests.post(url, headers=headers, data=jdata)
+        threading.Thread(target=data_thread, args=(url, headers, jdata)).start()
 
-        if response.status_code == 201:
-            msg = response.json()['message']
-            print(msg)
+def data_thread(url, headers, data):
+    response = requests.post(url, headers=headers, data=jdata)
+
+    if response.status_code == 201:
+        msg = response.json()['message']
+        print(msg)
 
 init_key()
 
