@@ -392,6 +392,7 @@ class Blockchain:
         while True:
             if self.are_sexbomb:
                 n = 0
+                self.heartbeat += 1
                 self.are_sexbomb = False
                 continue
 
