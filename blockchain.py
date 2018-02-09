@@ -258,6 +258,7 @@ class Blockchain:
 
             threading.Thread(target=self.block_thread, args=(url, headers, jdata)).start()
         self.is_sexbomb = False
+        print("commit lemonbomb : " + str(self.lemonbomb))
         signal.pthread_kill(self.lemonbomb,signal.SIGCONT)
         return result
 
@@ -363,6 +364,7 @@ class Blockchain:
     # TODO: TODODODODODODODODODODODODODODO
     def block_generate(self):
         self.lemonbomb = threading.get_ident()
+        print("lemonbomb : "+str(self.lemonbomb))
         n = 0
         while True:
             n += 1
@@ -392,6 +394,7 @@ class Blockchain:
         self.lemonbomb = threading.get_ident()
         n = 0
         while True:
+            print("are: "+str(are_sexbomb)+"is: "+str(is_sexbomb)+"n: "+str(n))
             if self.are_sexbomb:
                 n = 0
                 self.heartbeat += 1
