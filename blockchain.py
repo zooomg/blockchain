@@ -258,7 +258,7 @@ class Blockchain:
 
             threading.Thread(target=self.block_thread, args=(url, headers, jdata)).start()
         self.is_sexbomb = False
-        threading.pthread_kill(self.lemonbomb,signal.SIGUSR1)
+        signal.pthread_kill(self.lemonbomb,signal.SIGUSR1)
         return result
 
     def add_utxo(self, fdata):
