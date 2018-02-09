@@ -16,7 +16,7 @@ class Blockchain:
         self.heartbeat = -1
         self.lemonbomb = -1                         # thread_id of timer something
         self.is_sexbomb = False                     # global variable for checking consensus
-        self.are_sexbomb = False
+        self.are_sexbomb = False                    # this is what we are going to do now
         self.leader = ()                            # id : addr pair
         self.leader_idx = -1                        # leader's idx
         self.transactions_buffer = []               # whole tx
@@ -365,28 +365,46 @@ class Blockchain:
         self.lemonbomb = threading.get_ident()
         n = 0
         while True:
-            n+=1
+            n += 1
             if n == 7:
                 n = 0
                 if len(self.transactions_buffer) > 0:
                     self.pre_prepare()
                     signal.pause()
                 else:
+                    self.heartbeat += 1
+                    data = {'heartbeat': self.heartbeat}
 
+                    sign = rsa.sign(str(data).encode('utf8'), self.prikey, 'SHA-1')
+                    headers = {'Content-Type': 'application/json'}
+                    for node in self.nodes:
+                        url = 'http://' + self.nodes[node][0] + '/heartbeat'                # idx 0 = addr
+                        cdata = rsa.encrypt(str(data).encode('utf8'), self.nodes[node][1])  # idx 1 = pubkey
+                        fdata = {'data': list(cdata), 'sign': list(sign), 'id': self.node_identifier}
+                        jdata = json.dumps(fdata)
+
+                        threading.Thread(target=self.block_thread, args=(url, headers, jdata)).start()
             sleep(1)
 
     def timeout(self):
         self.lemonbomb = threading.get_ident()
         n = 0
         while True:
-            n+=1
-            if n == 15:
+            if self.are_sexbomb:
                 n = 0
-                print("bomb!!!!!!")
-            sleep(1)
+                self.are_sexbomb = False
+                continue
+
             if self.is_sexbomb:
                 n = 0
                 signal.pause()
+
+            n += 1
+            if n == 15:
+                n = 0
+                print("bomb!!!!!!")
+
+            sleep(1)
         def restart():
             n = 0
 

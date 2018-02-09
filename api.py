@@ -314,33 +314,32 @@ def get_leader():
 
 
 @app.route('/nodes/leader/heartbeat', methods=['POST'])
-def headerbeat():
-    # TODO : fix this
+def heartbeat():
     values = request.get_json()
 
-    nodes = values.get('nodes')
-    leader_idx = values.get('leader_idx')
-    blockchain.leader_idx = leader_idx
+    cdata = bytes(values.get('data'))
+    sign = bytes(values.get('sign'))
+    node_id = values.get('id')
+    data = rsa.decrypt(cdata, blockchain.prikey)
 
-    if nodes is None:
-        return "Error: Please supply a valid list of nodes", 400
+    if not rsa.verify(data, sign, blockchain.nodes[node_id][1]):
+        print("VERIFY ERROR")
+        response = {'message': "Verify Error"}
+        return jsonify(response), 400
 
-    for node in nodes:
-        node_id = node.get('id')
-        node_addr = node.get('address')
-        node_pubkey = rsa.PublicKey(**node.get('pubkey'))
-        is_leader = node.get('leader')
+    data = literal_eval(data.decode('utf8'))
+    heartbeat_idx = data.get('heartbeat')
 
-        if is_leader is True:
-            blockchain.leader = (node_id, node_addr)
-            blockchain.consensus_start()
+    if heartbeat_idx != blockchain.heartbeat + 1:
+        print("HEARTBEAT INDEX ERROR")
+        response = {'message': "Heartbeat Error"}
+        return jsonify(response), 400
 
-        if node_id != blockchain.node_identifier:
-            blockchain.register_node(node_id, node_addr, node_pubkey)
+    # Reset timer
+    blockchain.are_sexbomb = True
 
     response = {
-        'message': 'New nodes have been added',
-        'total_nodes': list(blockchain.nodes.keys()),
+        'message': 'Get heartbeat'
     }
     return jsonify(response), 201
 
