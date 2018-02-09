@@ -394,7 +394,7 @@ class Blockchain:
         self.lemonbomb = threading.get_ident()
         n = 0
         while True:
-            print("are: "+str(are_sexbomb)+"is: "+str(is_sexbomb)+"n: "+str(n))
+            print("are: "+str(self.are_sexbomb)+"is: "+str(self.is_sexbomb)+"n: "+str(n))
             if self.are_sexbomb:
                 n = 0
                 self.heartbeat += 1
