@@ -39,6 +39,9 @@ class Blockchain:
 
         # Create the genesis block
         self.chain.append(genesis_block)
+        signal.signal(signal.SIGUSR1,self.anything)
+    def anything(self,signum,frame):
+        print("plz wake up!")
 
     def register_node(self, node_id, node_addr, node_pubkey):
         """
@@ -220,6 +223,7 @@ class Blockchain:
 
         self.status[2][str(self.current_block)] = {self.leader[0], self.node_identifier}
         self.is_sexbomb = True
+        sleep(1)
 
         for node in self.nodes:
             url = 'http://' + self.nodes[node][0] + '/consensus'                # idx 0 = addr
@@ -259,7 +263,7 @@ class Blockchain:
             threading.Thread(target=self.block_thread, args=(url, headers, jdata)).start()
         self.is_sexbomb = False
         print("commit lemonbomb : " + str(self.lemonbomb))
-        signal.pthread_kill(self.lemonbomb,signal.SIGCONT)
+        signal.pthread_kill(self.lemonbomb,signal.SIGUSR1)
         return result
 
     def add_utxo(self, fdata):

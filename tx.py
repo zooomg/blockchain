@@ -83,7 +83,7 @@ def init_uxto():
         sign = rsa.sign(cdata, prikey, 'SHA-1')
         fdata = {'data': list(cdata), 'sign': list(sign)}
         jdata = json.dumps(fdata)
-        
+
         threading.Thread(target=data_thread, args=(url, headers, jdata)).start()
 
 def data_thread(url, headers, data):
