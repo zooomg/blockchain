@@ -335,6 +335,7 @@ def heartbeat():
         response = {'message': "Heartbeat Error"}
         return jsonify(response), 400
 
+    print("아주기모띠")
     # Reset timer
     blockchain.are_sexbomb = True
 

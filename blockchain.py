@@ -378,7 +378,7 @@ class Blockchain:
                     sign = rsa.sign(str(data).encode('utf8'), self.prikey, 'SHA-1')
                     headers = {'Content-Type': 'application/json'}
                     for node in self.nodes:
-                        url = 'http://' + self.nodes[node][0] + '/heartbeat'                # idx 0 = addr
+                        url = 'http://' + self.nodes[node][0] + '/nodes/leader/heartbeat'                # idx 0 = addr
                         cdata = rsa.encrypt(str(data).encode('utf8'), self.nodes[node][1])  # idx 1 = pubkey
                         fdata = {'data': list(cdata), 'sign': list(sign), 'id': self.node_identifier}
                         jdata = json.dumps(fdata)
