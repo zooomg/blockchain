@@ -138,30 +138,30 @@ class Blockchain:
         if self.node_identifier == self.leader[0]:
             return str(True)
 
-        # # check either index is right (prevent replay attack)
-        # block_idx = self.current_block.get('index')
-        # if not self.valid_idx(block_idx):
-        #     return str(False)
+        # check either index is right (prevent replay attack)
+        block_idx = self.current_block.get('index')
+        if not self.valid_idx(block_idx):
+            return str(False)
 
-        # # check the time (prevent DDoS attack)
-        # block_time = self.current_block.get('timestamp')
-        # if not self.valid_timestamp(block_time):
-        #     return str(False)
+        # check the time (prevent DDoS attack)
+        block_time = self.current_block.get('timestamp')
+        if not self.valid_timestamp(block_time):
+            return str(False)
 
-        txs = self.current_block.get('transactions')
+        # txs = self.current_block.get('transactions')
 
-        # TODO : valid whole tx in current block
-        # TODO : if current tx is valid, pop it from tx buffer
-        for tx in txs:
-            if tx.get('rand_id') in self.utxo:
-                if not self.utxo['rand_id']:
-                    self.utxo['rand_id'] = True
-                    self.current_transactions.append(tx)
-                    self.transactions_buffer.remove(tx)
-                else:
-                    return str(False)
-            else:
-                return str(False)
+        # # TODO : valid whole tx in current block
+        # # TODO : if current tx is valid, pop it from tx buffer
+        # for tx in txs:
+        #     if tx.get('rand_id') in self.utxo:
+        #         if not self.utxo['rand_id']:
+        #             self.utxo['rand_id'] = True
+        #             self.current_transactions.append(tx)
+        #             self.transactions_buffer.remove(tx)
+        #         else:
+        #             return str(False)
+        #     else:
+        #         return str(False)
 
         return str(True)
 
