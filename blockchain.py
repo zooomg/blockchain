@@ -153,10 +153,11 @@ class Blockchain:
         # TODO : valid whole tx in current block
         # TODO : if current tx is valid, pop it from tx buffer
         for tx in txs:
-            if tx.get('rand_id') in self.utxo:
-                if not self.utxo['rand_id']:
+            rand_id = tx.get('sender')
+            if rand_id in self.utxo:
+                if not self.utxo[rand_id]:
                     print("case 3")
-                    self.utxo['rand_id'] = True
+                    self.utxo[rand_id] = True
                     self.current_transactions.append(tx)
                     self.transactions_buffer.remove(tx)
                 else:
