@@ -138,15 +138,15 @@ class Blockchain:
         if self.node_identifier == self.leader[0]:
             return str(True)
 
-        # check either index is right (prevent replay attack)
-        block_idx = self.current_block.get('index')
-        if not self.valid_idx(block_idx):
-            return str(False)
+        # # check either index is right (prevent replay attack)
+        # block_idx = self.current_block.get('index')
+        # if not self.valid_idx(block_idx):
+        #     return str(False)
 
-        # check the time (prevent DDoS attack)
-        block_time = self.current_block.get('timestamp')
-        if not self.valid_timestamp(block_time):
-            return str(False)
+        # # check the time (prevent DDoS attack)
+        # block_time = self.current_block.get('timestamp')
+        # if not self.valid_timestamp(block_time):
+        #     return str(False)
 
         txs = self.current_block.get('transactions')
 
