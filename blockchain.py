@@ -148,20 +148,23 @@ class Blockchain:
         if not self.valid_timestamp(block_time):
             return str(False)
 
-        # txs = self.current_block.get('transactions')
+        txs = self.current_block.get('transactions')
 
-        # # TODO : valid whole tx in current block
-        # # TODO : if current tx is valid, pop it from tx buffer
-        # for tx in txs:
-        #     if tx.get('rand_id') in self.utxo:
-        #         if not self.utxo['rand_id']:
-        #             self.utxo['rand_id'] = True
-        #             self.current_transactions.append(tx)
-        #             self.transactions_buffer.remove(tx)
-        #         else:
-        #             return str(False)
-        #     else:
-        #         return str(False)
+        # TODO : valid whole tx in current block
+        # TODO : if current tx is valid, pop it from tx buffer
+        for tx in txs:
+            if tx.get('rand_id') in self.utxo:
+                if not self.utxo['rand_id']:
+                    print("case 3")
+                    self.utxo['rand_id'] = True
+                    self.current_transactions.append(tx)
+                    self.transactions_buffer.remove(tx)
+                else:
+                    print("case 1")
+                    return str(False)
+            else:
+                print("case 2")
+                return str(False)
 
         return str(True)
 
