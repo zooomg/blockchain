@@ -131,7 +131,7 @@ def consensus():
         if len(blockchain.nodes) + 1 < len(blockchain.status[3][1]) * 3:
             # TODO : send result to mid server
             # TODO : reset the settings
-            for tx in blockchain.current_transacions:
+            for tx in blockchain.current_transactions:
                 rand_id = tx.get('rand_id')
                 blockchain.utxo[rand_id] = False
 
