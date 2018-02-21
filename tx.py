@@ -58,9 +58,10 @@ def get_info():
 def send_tx():
     headers = {'Content-Type': 'application/json'}
     for utxo in utxo_list:
+        candidate_num = random.randint(0, 2)
         for node in nodes:
             url = node.get('address') + '/transactions/new'
-            data = {'rand_id': utxo, 'candidate': candidate_list[random.randint(0, 2)]}
+            data = {'rand_id': utxo, 'candidate': candidate_list[candidate_num]}
             node_pubkey = rsa.PublicKey(**node.get('pubkey'))
             cdata = rsa.encrypt(str(data).encode('utf8'), node_pubkey)
             sign = rsa.sign(cdata, prikey, 'SHA-1')
