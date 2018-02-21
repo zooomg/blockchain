@@ -46,7 +46,7 @@ def consensus():
     # to prevent replaying previous steps
     if phase < blockchain.status[0]:
         print("PREVIOUS STEPS")
-        response = {'message': "Previous Steps"}
+        response = {'message': "Previous Steps {phase}"}
         return jsonify(response), 202
 
     if phase == 0:      # pre-prepare
