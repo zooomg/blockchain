@@ -360,9 +360,4 @@ if __name__ == '__main__':
     parser.add_argument('-p', '--port', default=5000, type=int, help='port to listen on')
     args = parser.parse_args()
     port = args.port
-
-<<<<<<< HEAD
-    app.run(host='127.0.0.1', port=port)
-=======
     app.run(host='0.0.0.0', port=port, threaded=True)
->>>>>>> 2fd1abcd3528b9a9cb9a7989566e9cdf7bcded56
