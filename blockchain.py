@@ -133,6 +133,7 @@ class Blockchain:
 
         :return: str(True) or str(False)
         """
+        return str(True)
 
         # if valid node is leader, mu juck gun pass
         if self.node_identifier == self.leader[0]:
