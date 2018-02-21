@@ -40,8 +40,9 @@ class Blockchain:
         # Create the genesis block
         self.chain.append(genesis_block)
         signal.signal(signal.SIGUSR1,self.anything)
+
     def anything(self,signum,frame):
-        print("plz wake up!")
+        pass
 
     def register_node(self, node_id, node_addr, node_pubkey):
         """
@@ -132,6 +133,36 @@ class Blockchain:
 
         :return: str(True) or str(False)
         """
+
+        # if valid node is leader, mu juck gun pass
+        if self.node_identifier == self.leader[0]:
+            return str(True)
+
+        # check either index is right (prevent replay attack)
+        block_idx = self.current_block.get('index')
+        if not self.valid_idx(block_idx):
+            return str(False)
+
+        # check the time (prevent DDoS attack)
+        block_time = self.current_block.get('timestamp')
+        if not self.valid_timestamp(block_time):
+            return str(False)
+
+        txs = self.current_block.get('transactions')
+
+        # TODO : valid whole tx in current block
+        # TODO : if current tx is valid, pop it from tx buffer
+        for tx in txs:
+            if tx.get('rand_id') in self.utxo:
+                if not self.utxo['rand_id']:
+                    self.utxo['rand_id'] = True
+                    self.current_transactions.append(tx)
+                    self.transactions_buffer.remove(tx)
+                else:
+                    return str(False)
+            else:
+                return str(False)
+
         return str(True)
 
     # TODO : show details; ex) phase #, more response code
@@ -174,20 +205,6 @@ class Blockchain:
             'timestamp': time(),
             'transactions': self.current_transactions,
         }
-
-        # check either index is right (prevent replay attack)
-        block_idx = block.get('index')
-        if not self.valid_idx(block_idx):
-            self.transactions_buffer += self.current_transactions
-            self.current_transactions = []
-            return None
-
-        # check the time (prevent DDoS attack)
-        block_time = block.get('timestamp')
-        if not self.valid_timestamp(block_time):
-            self.transactions_buffer += self.current_transactions
-            self.current_transactions = []
-            return None
 
         self.current_block = block
 
@@ -243,6 +260,7 @@ class Blockchain:
         :return: result
         """
         result = self.valid_block()
+
         if result:
             self.status[3][0].add(self.node_identifier)
         else:
@@ -317,11 +335,12 @@ class Blockchain:
         rand_id = data['rand_id']
         candidate = data['candidate']
 
+        tx = { 'sender': rand_id, 'receiver': candidate }
+        if tx in self.transactions_buffer:
+            return False
+
         if self.valid_transaction(rand_id):
-            self.transactions_buffer.append({
-                'sender': rand_id,
-                'receiver': candidate
-            })
+            self.transactions_buffer.append(tx)
             return True
         else:
             return False

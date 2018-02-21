@@ -131,6 +131,10 @@ def consensus():
         if len(blockchain.nodes) + 1 < len(blockchain.status[3][1]) * 3:
             # TODO : send result to mid server
             # TODO : reset the settings
+            for tx in blockchain.current_transacions:
+                rand_id = tx.get('rand_id')
+                blockchain.utxo[rand_id] = False
+
             blockchain.transactions_buffer += blockchain.current_transactions
             blockchain.current_transactions = []
             # TODO : leader change
@@ -357,4 +361,4 @@ if __name__ == '__main__':
     args = parser.parse_args()
     port = args.port
 
-    app.run(host='0.0.0.0', port=port)
+    app.run(host='127.0.0.1', port=port)
