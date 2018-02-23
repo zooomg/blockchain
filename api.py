@@ -170,13 +170,13 @@ def consensus():
 #     }
 #     return jsonify(response), 200
 
-@app.rout('/append_genesis', methods=['POST'])
+@app.route('/append_genesis', methods=['POST'])
 def append_genesis():
     values = request.get_json()
     # TODO : auth pubkey 확인
     blockchain.append_genesis(values)
     response = {'message': f'ang gimotti'}
-    return jsonfiy(response), 201
+    return jsonify(response), 201
 
 
 @app.route('/utxo/new', methods=['POST'])

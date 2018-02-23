@@ -2,11 +2,12 @@ import json
 from urllib.parse import urlparse
 import threading
 import requests
+from time import time
 
 nodes_addr = ["http://172.17.67.233:5000",
               "http://172.17.67.233:5001",
-              "http://172.17.64.153:5000",
-              "http://172.17.64.153:5001"]
+              "http://172.17.64.177:5000",
+              "http://172.17.64.177:5001"]
 
 # nodes_addr = ["http://127.0.0.1:5002",
 #               "http://127.0.0.1:5000",

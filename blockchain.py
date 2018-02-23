@@ -422,11 +422,11 @@ class Blockchain:
         self.thread_id = threading.get_ident()
         n = 0
         while True:
-            print("are: "+str(self.timer_cnt)+"is: "+str(self.is_block)+"n: "+str(n))
-            if self.timer_cnt:
+            print("are: "+str(self.timer_chk)+"is: "+str(self.is_block)+"n: "+str(n))
+            if self.timer_chk:
                 n = 0
                 self.heartbeat += 1
-                self.timer_cnt = False
+                self.timer_chk = False
                 continue
 
             if self.is_block:
