@@ -77,10 +77,10 @@ def data_thread(url, headers, data):
 
     if response.status_code == 201:
         msg = response.json()['message']
-        total_nodes = response.json()['total_nodes']
+        # total_nodes = response.json()['total_nodes']
         print(msg)
-        for t in total_nodes:
-            print(t)
+        # for t in total_nodes:
+            # print(t)
 
 get_info()
 
