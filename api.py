@@ -340,7 +340,7 @@ def heartbeat():
         return jsonify(response), 400
 
     # Reset timer
-    blockchain.are_sexbomb = True
+    blockchain.timer_chk = True
 
     response = {
         'message': 'Get heartbeat'

@@ -14,9 +14,9 @@ from time import sleep
 class Blockchain:
     def __init__(self, genesis_block):
         self.heartbeat = -1
-        self.lemonbomb = -1                         # thread_id of timer something
-        self.is_sexbomb = False                     # global variable for checking consensus
-        self.are_sexbomb = False                    # this is what we are going to do now
+        self.thread_id = -1                         # thread_id of timer something
+        self.is_block = False                       # global variable for checking consensus
+        self.timer_chk = False                      # this is what we are going to do now
         self.leader = ()                            # id : addr pair
         self.leader_idx = -1                        # leader's idx
         self.transactions_buffer = []               # whole tx
@@ -243,7 +243,7 @@ class Blockchain:
         headers = {'Content-Type': 'application/json'}
 
         self.status[2][str(self.current_block)] = {self.leader[0], self.node_identifier}
-        self.is_sexbomb = True
+        self.is_block = True
         sleep(1)
 
         for node in self.nodes:
@@ -283,9 +283,9 @@ class Blockchain:
             jdata = json.dumps(fdata)
 
             threading.Thread(target=self.block_thread, args=(url, headers, jdata)).start()
-        self.is_sexbomb = False
-        print("commit lemonbomb : " + str(self.lemonbomb))
-        signal.pthread_kill(self.lemonbomb,signal.SIGUSR1)
+        self.is_block = False
+        print("commit thread_id : " + str(self.thread_id))
+        signal.pthread_kill(self.thread_id,signal.SIGUSR1)
         return result
 
     def add_utxo(self, fdata):
@@ -390,8 +390,8 @@ class Blockchain:
             return True
     # TODO: TODODODODODODODODODODODODODODO
     def block_generate(self):
-        self.lemonbomb = threading.get_ident()
-        print("lemonbomb : "+str(self.lemonbomb))
+        self.thread_id = threading.get_ident()
+        print("thread_id : "+str(self.thread_id))
         n = 0
         while True:
             n += 1
@@ -418,17 +418,17 @@ class Blockchain:
             sleep(1)
 
     def timeout(self):
-        self.lemonbomb = threading.get_ident()
+        self.thread_id = threading.get_ident()
         n = 0
         while True:
-            print("are: "+str(self.are_sexbomb)+"is: "+str(self.is_sexbomb)+"n: "+str(n))
-            if self.are_sexbomb:
+            print("are: "+str(self.timer_cnt)+"is: "+str(self.is_block)+"n: "+str(n))
+            if self.timer_cnt:
                 n = 0
                 self.heartbeat += 1
-                self.are_sexbomb = False
+                self.timer_cnt = False
                 continue
 
-            if self.is_sexbomb:
+            if self.is_block:
                 n = 0
                 print("[Timeout] : PAUSE!!!!!!!")
                 signal.pause()
