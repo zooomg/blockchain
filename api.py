@@ -14,11 +14,8 @@ import blockchain
 # Instantiate the Node
 app = Flask(__name__)
 
-# Genesis block
-genesis_block = blockchain.init_genesis_block()
-
 # Instantiate the Blockchain
-blockchain = blockchain.Blockchain(genesis_block)
+blockchain = blockchain.Blockchain()
 
 # {
 #     'phase': 0              # pre-prepare = 0, prepare = 1, commit = 2
@@ -173,6 +170,15 @@ def consensus():
 #     }
 #     return jsonify(response), 200
 
+@app.rout('/append_genesis', methods=['POST'])
+def append_genesis():
+    values = request.get_json()
+    # TODO : auth pubkey 확인
+    blockchain.append_genesis(values)
+    response = {'message': f'ang gimotti'}
+    return jsonfiy(response), 201
+
+
 @app.route('/utxo/new', methods=['POST'])
 def new_utxo():
     values = request.get_json()
@@ -182,6 +188,7 @@ def new_utxo():
     else:
         response = {'message': f'Invalid UTxO'}
         return jsonify(response), 400
+
 
 @app.route('/utxo/list', methods=['GET'])
 def get_utxo():
@@ -348,10 +355,10 @@ def heartbeat():
     return jsonify(response), 201
 
 
-@app.route('/mine', methods=['GET'])
-def do_it_now():
-    response = blockchain.pre_prepare()
-    return jsonify(response), 200
+# @app.route('/mine', methods=['GET'])
+# def do_it_now():
+#     response = blockchain.pre_prepare()
+#     return jsonify(response), 200
 
 if __name__ == '__main__':
     from argparse import ArgumentParser

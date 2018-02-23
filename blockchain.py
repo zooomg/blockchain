@@ -12,7 +12,7 @@ import signal
 from time import sleep
 
 class Blockchain:
-    def __init__(self, genesis_block):
+    def __init__(self):
         self.heartbeat = -1
         self.thread_id = -1                         # thread_id of timer something
         self.is_block = False                       # global variable for checking consensus
@@ -38,10 +38,9 @@ class Blockchain:
         (self.pubkey, self.prikey) = rsa.newkeys(2048)
 
         # Create the genesis block
-        self.chain.append(genesis_block)
         signal.signal(signal.SIGUSR1,self.anything)
 
-    def anything(self,signum,frame):
+    def anything(self, signum, frame):
         pass
 
     def register_node(self, node_id, node_addr, node_pubkey):
@@ -55,6 +54,11 @@ class Blockchain:
         parsed_url = urlparse(node_addr)
         self.nodes[node_id] = (parsed_url.netloc, node_pubkey)
 
+    def append_genesis(self, genesis_block):
+        """
+        Add the genesis block to the chain
+        """
+        self.chain.append(genesis_block)
 
     def consensus_start(self):
         if self.leader[0] == self.node_identifier:
@@ -150,21 +154,18 @@ class Blockchain:
 
         txs = self.current_block.get('transactions')
 
-        # TODO : valid whole tx in current block
-        # TODO : if current tx is valid, pop it from tx buffer
+        # valid whole tx in current block
+        # if current tx is valid, pop it from tx buffer
         for tx in txs:
             rand_id = tx.get('sender')
             if rand_id in self.utxo:
                 if not self.utxo[rand_id]:
-                    print("case 3")
                     self.utxo[rand_id] = True
                     self.current_transactions.append(tx)
                     self.transactions_buffer.remove(tx)
                 else:
-                    print("case 1")
                     return str(False)
             else:
-                print("case 2")
                 return str(False)
 
         return str(True)
@@ -326,7 +327,7 @@ class Blockchain:
         :param sign: Sign of Sender
         :return: The index of the Block that will hold this transaction
         """
-        # TODO: transaction append(After meeting)
+        # transaction append
         cdata = bytes(fdata['data'])
         sign = bytes(fdata['sign'])
 
@@ -356,7 +357,7 @@ class Blockchain:
         :param transaction: the given tx
         :return: True or False
         """
-        # TODO: transaction check(After meeting)
+        # transaction check
         if rand_id in self.utxo:
             if not self.utxo[rand_id]:
                 return True
@@ -388,7 +389,7 @@ class Blockchain:
             return False
         else:
             return True
-    # TODO: TODODODODODODODODODODODODODODO
+
     def block_generate(self):
         self.thread_id = threading.get_ident()
         print("thread_id : "+str(self.thread_id))
@@ -446,61 +447,6 @@ class Blockchain:
     @property
     def last_block(self):
         return self.chain[-1]
-
-    @staticmethod
-    def hash(block):
-        """
-        Creates a SHA-256 hash of a Block
-
-        :param block: Block
-        """
-
-        # We must make sure that the Dictionary is Ordered, or we'll have inconsistent hashes
-        block_string = json.dumps(block, sort_keys=True).encode()
-        return hashlib.sha256(block_string).hexdigest()
-
-    def proof_of_work(self, last_proof):
-        """
-        Simple Proof of Work Algorithm:
-         - Find a number p' such that hash(pp') contains leading 4 zeroes, where p is the previous p'
-         - p is the previous proof, and p' is the new proof
-        """
-
-        proof = 0
-        while self.valid_proof(last_proof, proof) is False:
-            proof += 1
-
-        return proof
-
-    @staticmethod
-    def valid_proof(last_proof, proof):
-        """
-        Validates the Proof
-
-        :param last_proof: Previous Proof
-        :param proof: Current Proof
-        :return: True if correct, False if not.
-        """
-
-        guess = f'{last_proof}{proof}'.encode()
-        guess_hash = hashlib.sha256(guess).hexdigest()
-        return guess_hash[:4] == "0000"
-
-
-def init_genesis_block():
-    """
-    Init genesis block
-
-    :return: Genesis block
-    """
-
-    # TODO : change block
-    block = {
-        'index': 1,
-        'timestamp': time(),
-        'transactions': [],
-    }
-    return block
 
 
 

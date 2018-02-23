@@ -17,6 +17,21 @@ leader_id = None
 leader_idx = -1
 nodes = []
 
+def init_genesis_block():
+    """
+    Init genesis block
+
+    :return: Genesis block
+    """
+
+    # TODO : change block
+    block = {
+        'index': 1,
+        'timestamp': time(),
+        'transactions': [],
+    }
+    return block
+
 def get_info():
     flag = True
 
@@ -45,6 +60,12 @@ def send_info():
     data = {'nodes': nodes, 'leader_idx': leader_idx}
     jdata = json.dumps(data)
     headers = {'Content-Type': 'application/json'}
+    genesis_block = init_genesis_block()
+    jblock = json.dumps(genesis_block)
+
+    for node in nodes_addr:
+        url = node + '/append_genesis'
+        threading.Thread(target=data_thread, args=(url, headers, jblock)).start()
 
     for node in nodes_addr:
         url = node + '/nodes/register'
