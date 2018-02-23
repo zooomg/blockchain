@@ -58,7 +58,7 @@ def get_info():
 def send_tx():
     headers = {'Content-Type': 'application/json'}
     for utxo in utxo_list:
-        candidate_num = random.randint(0, 2)
+        candidate_num = random.randint(0, 2) # 투표 누구에게 할지 정보
         for node in nodes:
             url = node.get('address') + '/transactions/new'
             data = {'rand_id': utxo, 'candidate': candidate_list[candidate_num]}
