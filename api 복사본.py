@@ -8,23 +8,14 @@ from flask import Flask, jsonify, request
 import threading
 import signal
 from time import sleep, time
-from argparse import ArgumentParser
 
 import blockchain
 
-parser = ArgumentParser()
-parser.add_argument('-p', '--port', default=5000, type=int, help='port to listen on')
-args = parser.parse_args()
-port = args.port
-
-# Instantiate the Blockchain
-blockchain = blockchain.Blockchain(str(port))
-blockchain = None
-
-
 # Instantiate the Node
 app = Flask(__name__)
-app.run(host='0.0.0.0', port=port, threaded=True)
+
+# Instantiate the Blockchain
+blockchain = blockchain.Blockchain()
 
 # {
 #     'phase': 0              # pre-prepare = 0, prepare = 1, commit = 2
@@ -364,5 +355,16 @@ def heartbeat():
     return jsonify(response), 201
 
 
-# if __name__ == '__main__':
-#     
+# @app.route('/mine', methods=['GET'])
+# def do_it_now():
+#     response = blockchain.pre_prepare()
+#     return jsonify(response), 200
+
+if __name__ == '__main__':
+    from argparse import ArgumentParser
+
+    parser = ArgumentParser()
+    parser.add_argument('-p', '--port', default=5000, type=int, help='port to listen on')
+    args = parser.parse_args()
+    port = args.port
+    app.run(host='0.0.0.0', port=port, threaded=True)

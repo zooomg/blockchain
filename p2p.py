@@ -4,12 +4,10 @@ import threading
 import requests
 from time import time
 
-
-# 우리가 보낼 ip 주소들을 nodes_addr에 추가하는데, len(nodes_addr)이 정확한 개수에 도달하면, get_info실행
 nodes_addr = ["http://172.17.67.233:5000",
               "http://172.17.67.233:5001",
-              "http://172.17.64.177:5000",
-              "http://172.17.64.177:5001"]
+              "http://172.17.65.54:5000",
+              "http://172.17.65.54:5001"]
 
 # nodes_addr = ["http://127.0.0.1:5002",
 #               "http://127.0.0.1:5000",
@@ -84,10 +82,8 @@ def data_thread(url, headers, data):
         # for t in total_nodes:
             # print(t)
 
-# TODO : node ip 개수가 정해진 개수에 도달했을 때 << 구현
-get_info() # 후에 이거 실행
+get_info()
 
-# 이거는 리더 선택인데 걍 써도 됨
 nodes = sorted(nodes, key=lambda k:k['id'])
 for i in range(len(nodes)):
     if nodes[i].get('id') == leader_id:
