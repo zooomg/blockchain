@@ -281,6 +281,8 @@ def get_connected_nodes():
 def register_nodes():
     values = request.get_json()
 
+    # TODO : decrypt to auth's pubkey
+
     nodes = values.get('nodes')
     leader_idx = values.get('leader_idx')
     blockchain.leader_idx = leader_idx

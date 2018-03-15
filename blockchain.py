@@ -33,7 +33,7 @@ class Blockchain:
         self.utxo = {}                              # utxo (client_id,checked pair)
         # auth server's (id, pubkey)
         # TODO : Change this
-        self.auth = {'address': "http://172.17.65.116:5000", 'pubkey': None}
+        self.auth = {'address': "http://172.17.68.181:5000", 'pubkey': None}
         # self.auth['pubkey'] = rsa.PublicKey(**{'e': 65537, 'n': 17809337809702581702806712750053855729116615216583132187723237673838818997862296690261064757625415664990204748919188173181942765055081418828098039146431896266688540311566257421970474465165733940444107217057017214471218490459283519787553499209929334460323792755288443804920738718853804105499649811677109466929811357788771159957275809186164999242515624152177284219205274328856370640031144310994904160761505104630562313240588506017841870945278152662353349372756482500998680942480381750645179533581431845207703425055137502840627577875951162237565176494850997789361250424373942732156204282322009099409257140674930124768817})
 
         # Generate a globally unique address for this node
@@ -61,7 +61,7 @@ class Blockchain:
 
         data = {
             'blockchain_id': self.node_identifier,
-            'blockchain_name': "sexes",
+            'blockchain_name': "bc1",
             'blockchain_pubkey': parse_num,
             'blockchain_ip': self.addr + ":" + self.port
         }
@@ -339,7 +339,7 @@ class Blockchain:
 
         # Error
         if not rsa.verify(cdata, sign, self.auth['pubkey']):
-            pass
+            return False
 
         data = rsa.decrypt(cdata, self.prikey)
         data = literal_eval(data.decode('utf8'))
@@ -448,8 +448,8 @@ class Blockchain:
                     sign = rsa.sign(str(data).encode('utf8'), self.prikey, 'SHA-1')
                     headers = {'Connection': 'close', 'Content-Type': 'application/json'}
                     for node in self.nodes:
-                        url = 'http://' + self.nodes[node][0] + '/nodes/leader/heartbeat'                # idx 0 = addr
-                        cdata = rsa.encrypt(str(data).encode('utf8'), self.nodes[node][1])  # idx 1 = pubkey
+                        url = 'http://' + self.nodes[node][0] + '/nodes/leader/heartbeat'               # idx 0 = addr
+                        cdata = rsa.encrypt(str(data).encode('utf8'), self.nodes[node][1])              # idx 1 = pubkey
                         fdata = {'data': list(cdata), 'sign': list(sign), 'id': self.node_identifier}
                         jdata = json.dumps(fdata)
 
