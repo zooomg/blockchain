@@ -32,9 +32,9 @@ class Blockchain:
         self.status = [0, None, {}, (set(), set())] # phase info [phase_idx, block, {str(block): [list(block's id)]}, (set(yes_id), set(no_id))]
         self.utxo = {}                              # utxo (client_id,checked pair)
         # auth server's (id, pubkey)
-        # TODO : Change this
         self.auth = {'address': "http://172.17.68.181:5000", 'pubkey': None}
-        # self.auth['pubkey'] = rsa.PublicKey(**{'e': 65537, 'n': 17809337809702581702806712750053855729116615216583132187723237673838818997862296690261064757625415664990204748919188173181942765055081418828098039146431896266688540311566257421970474465165733940444107217057017214471218490459283519787553499209929334460323792755288443804920738718853804105499649811677109466929811357788771159957275809186164999242515624152177284219205274328856370640031144310994904160761505104630562313240588506017841870945278152662353349372756482500998680942480381750645179533581431845207703425055137502840627577875951162237565176494850997789361250424373942732156204282322009099409257140674930124768817})
+        # web server's ip
+        self.web = {'address': "http://172.17.68.181:3000"}
 
         # Generate a globally unique address for this node
         self.node_identifier = str(uuid4()).replace('-', '')
@@ -67,6 +67,9 @@ class Blockchain:
         }
 
         jdata = json.dumps(data)
+
+        # TODO: 논의가 필요함 parameters
+        self.send2web(0, 0, 'auth', 'turn_on')
 
         response = requests.post(url, headers=headers, data=jdata)
         if response.status_code == 200:
@@ -168,7 +171,6 @@ class Blockchain:
 
         return False
 
-    # TODO : make tight of validation
     def valid_block(self):
         """
         Validation of the current block
@@ -242,7 +244,6 @@ class Blockchain:
 
         print(self.transactions_buffer)
 
-        # TODO : change block params
         block = {
             'index': len(self.chain) + 1,
             'timestamp': time(),
@@ -264,6 +265,7 @@ class Blockchain:
             jdata = json.dumps(fdata)
 
             threading.Thread(target=self.block_thread, args=(url, headers, jdata)).start()
+            self.send2web(len(self.chain), 0, node, block)
 
         self.status = [1, block, {str(block): {self.node_identifier}}, (set(), set())]
         threading.Thread(target=self.prepare).start()
@@ -293,6 +295,7 @@ class Blockchain:
             jdata = json.dumps(fdata)
 
             threading.Thread(target=self.block_thread, args=(url, headers, jdata)).start()
+            self.send2web(len(self.chain), 1, node, data['block'])
 
         return self.current_block
 
@@ -322,10 +325,19 @@ class Blockchain:
             jdata = json.dumps(fdata)
 
             threading.Thread(target=self.block_thread, args=(url, headers, jdata)).start()
+            self.send2web(len(self.chain), 2, node, str(data['result']))
+
         self.is_block = False
         print("commit thread_id : " + str(self.thread_id))
         signal.pthread_kill(self.thread_id,signal.SIGUSR1)
         return result
+
+    def add_block(self):
+        """
+        Add the block into one's chain
+        """
+        self.send2web(len(self.chain), 3, node, self.current_block)
+        self.chain.append(self.current_block)
 
     def add_utxo(self, fdata):
         """
@@ -444,7 +456,6 @@ class Blockchain:
                 else:
                     self.heartbeat += 1
                     data = {'heartbeat': self.heartbeat}
-
                     sign = rsa.sign(str(data).encode('utf8'), self.prikey, 'SHA-1')
                     headers = {'Connection': 'close', 'Content-Type': 'application/json'}
                     for node in self.nodes:
@@ -454,6 +465,7 @@ class Blockchain:
                         jdata = json.dumps(fdata)
 
                         threading.Thread(target=self.block_thread, args=(url, headers, jdata)).start()
+                        self.send2web(len(self.chain), 7, node, str(self.heartbeat))
             sleep(1)
 
     def timeout(self):
@@ -481,6 +493,18 @@ class Blockchain:
             sleep(1)
         def restart():
             n = 0
+
+    def send2web(self, round, phase, to, msg):
+        headers = {'Connection': 'close', 'Content-Type': 'application/json'}
+        url = self.web['address'] + '/log'
+        data = {
+            'node_id': self.node_identifier,
+            'round': round,
+            'phase': phase,
+            'to': to,
+            'msg': msg,
+        }
+        threading.Thread(target=self.block_thread, args=(url, headers, jdata)).start()
 
     @property
     def last_block(self):

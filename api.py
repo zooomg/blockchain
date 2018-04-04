@@ -123,7 +123,7 @@ def consensus():
         # when True count is over 2/3 nodes, send result to mid server
         if (len(blockchain.nodes) + 1) * 2 < len(blockchain.status[3][0]) * 3:
             # add current block to chain
-            blockchain.chain.append(blockchain.current_block)
+            blockchain.add_block()
             # TODO : send result to mid server
             # reset the settings
             blockchain.status = [0, None, {}, (set(), set())]
