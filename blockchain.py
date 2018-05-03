@@ -32,9 +32,9 @@ class Blockchain:
         self.status = [0, None, {}, (set(), set())] # phase info [phase_idx, block, {str(block): [list(block's id)]}, (set(yes_id), set(no_id))]
         self.utxo = {}                              # utxo (client_id,checked pair)
         # auth server's (id, pubkey)
-        self.auth = {'address': "http://172.17.68.181:5000", 'pubkey': None}
+        self.auth = {'address': "http://192.168.0.32:5000", 'pubkey': None}
         # web server's ip
-        self.web = {'address': "http://172.17.68.181:3000"}
+        self.web = {'address': "http://192.168.0.32:3000"}
 
         # Generate a globally unique address for this node
         self.node_identifier = str(uuid4()).replace('-', '')
@@ -69,7 +69,7 @@ class Blockchain:
         jdata = json.dumps(data)
 
         # TODO: 논의가 필요함 parameters
-        self.send2web(0, 0, 'auth', 'turn_on')
+        # self.send2web(0, 0, 'auth', 'turn_on')
 
         response = requests.post(url, headers=headers, data=jdata)
         if response.status_code == 200:
@@ -257,6 +257,7 @@ class Blockchain:
         sign = rsa.sign(str(data).encode('utf8'), self.prikey, 'SHA-1')
         headers = {'Connection': 'close', 'Content-Type': 'application/json'}
 
+        web_chain_len = len(self.chain)
         for node in self.nodes:
             url = 'http://' + self.nodes[node][0] + '/consensus'                # idx 0 = addr
             print("pre-prepare: from", self.node_identifier, "to", url)
@@ -265,7 +266,7 @@ class Blockchain:
             jdata = json.dumps(fdata)
 
             threading.Thread(target=self.block_thread, args=(url, headers, jdata)).start()
-            self.send2web(len(self.chain), 0, node, block)
+            self.send2web(web_chain_len, 0, node, block)
 
         self.status = [1, block, {str(block): {self.node_identifier}}, (set(), set())]
         threading.Thread(target=self.prepare).start()
@@ -287,6 +288,7 @@ class Blockchain:
         self.is_block = True
         sleep(1)
 
+        web_chain_len = len(self.chain)
         for node in self.nodes:
             url = 'http://' + self.nodes[node][0] + '/consensus'                # idx 0 = addr
             print("prepare: from", self.node_identifier, "to", url)
@@ -295,7 +297,7 @@ class Blockchain:
             jdata = json.dumps(fdata)
 
             threading.Thread(target=self.block_thread, args=(url, headers, jdata)).start()
-            self.send2web(len(self.chain), 1, node, data['block'])
+            self.send2web(web_chain_len, 1, node, data['block'])
 
         return self.current_block
 
@@ -317,6 +319,7 @@ class Blockchain:
         sign = rsa.sign(str(data).encode('utf8'), self.prikey, 'SHA-1')
         headers = {'Connection': 'close', 'Content-Type': 'application/json'}
 
+        web_chain_len = len(self.chain)
         for node in self.nodes:
             url = 'http://' + self.nodes[node][0] + '/consensus'                # idx 0 = addr
             print("commit: from", self.node_identifier, "to", url)
@@ -325,7 +328,7 @@ class Blockchain:
             jdata = json.dumps(fdata)
 
             threading.Thread(target=self.block_thread, args=(url, headers, jdata)).start()
-            self.send2web(len(self.chain), 2, node, str(data['result']))
+            self.send2web(web_chain_len, 2, node, str(data['result']))
 
         self.is_block = False
         print("commit thread_id : " + str(self.thread_id))
@@ -336,8 +339,11 @@ class Blockchain:
         """
         Add the block into one's chain
         """
-        self.send2web(len(self.chain), 3, node, self.current_block)
+        web_chain_len = len(self.chain)
         self.chain.append(self.current_block)
+        for tx in self.current_block.get('transactions'):
+            self.utxo[tx.get('sender')] = True;
+        self.send2web(web_chain_len, 3, "NULL", self.current_block)
 
     def add_utxo(self, fdata):
         """
@@ -504,6 +510,7 @@ class Blockchain:
             'to': to,
             'msg': msg,
         }
+        jdata = json.dumps(data)
         threading.Thread(target=self.block_thread, args=(url, headers, jdata)).start()
 
     @property
