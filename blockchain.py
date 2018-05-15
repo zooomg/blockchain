@@ -3,6 +3,8 @@ import json
 import rsa
 import socket
 import netifaces
+import hashlib
+
 from time import time
 from urllib.parse import urlparse
 from uuid import uuid4
@@ -32,15 +34,15 @@ class Blockchain:
         self.status = [0, None, {}, (set(), set())] # phase info [phase_idx, block, {str(block): [list(block's id)]}, (set(yes_id), set(no_id))]
         self.utxo = {}                              # utxo (client_id,checked pair)
         # auth server's (id, pubkey)
-        self.auth = {'address': "http://192.168.0.32:5000", 'pubkey': None}
+        self.auth = {'address': "http://192.168.0.11:5000", 'pubkey': None}
         # web server's ip
-        self.web = {'address': "http://192.168.0.32:3000"}
+        self.web = {'address': "http://192.168.0.11:3000"}
 
         # Generate a globally unique address for this node
         self.node_identifier = str(uuid4()).replace('-', '')
 
         # Generate a pair of the public key and the private key
-        (self.pubkey, self.prikey) = rsa.newkeys(2048)
+        (self.pubkey, self.prikey) = rsa.newkeys(2560)
         signal.signal(signal.SIGUSR1,self.anything)
 
         self.send2auth()
@@ -106,70 +108,6 @@ class Blockchain:
             threading.Thread(target=self.block_generate).start()
         else:
             threading.Thread(target=self.timeout).start()
-
-
-    def valid_chain(self, chain):
-        """
-        Determine if a given blockchain is valid
-
-        :param chain: A blockchain
-        :return: True if valid, False if not
-        """
-
-        last_block = chain[0]
-        current_index = 1
-
-        while current_index < len(chain):
-            block = chain[current_index]
-            print(f'{last_block}')
-            print(f'{block}')
-            print("\n-----------\n")
-            # Check that the hash of the block is correct
-            if block['previous_hash'] != self.hash(last_block):
-                return False
-
-            # Check that the Proof of Work is correct
-            if not self.valid_proof(last_block['proof'], block['proof']):
-                return False
-
-            last_block = block
-            current_index += 1
-
-        return True
-
-    def resolve_conflicts(self):
-        """
-        This is our consensus algorithm, it resolves conflicts
-        by replacing our chain with the longest one in the network.
-
-        :return: True if our chain was replaced, False if not
-        """
-
-        neighbours = self.nodes
-        new_chain = None
-
-        # We're only looking for chains longer than ours
-        max_length = len(self.chain)
-
-        # Grab and verify the chains from all the nodes in our network
-        for node in neighbours.values():
-            response = requests.get(f'http://{node}/chain')
-
-            if response.status_code == 200:
-                length = response.json()['length']
-                chain = response.json()['chain']
-
-                # Check if the length is longer and the chain is valid
-                if length > max_length and self.valid_chain(chain):
-                    max_length = length
-                    new_chain = chain
-
-        # Replace our chain if we discovered a new, valid chain longer than ours
-        if new_chain:
-            self.chain = new_chain
-            return True
-
-        return False
 
     def valid_block(self):
         """
@@ -248,6 +186,7 @@ class Blockchain:
             'index': len(self.chain) + 1,
             'timestamp': time(),
             'transactions': self.current_transactions,
+            'previous_hash': hashlib.sha256(str(self.chain[-1]).encode('utf-8')).hexdigest()
         }
 
         self.current_block = block
