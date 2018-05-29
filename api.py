@@ -102,7 +102,7 @@ def consensus():
             return jsonify(response), 201
 
         # when count is over 2/3 nodes, exec commit phase
-        if (len(blockchain.nodes) + 1) * 2 < len(blockchain.status[2][str(blockchain.current_block)]) * 3:
+        if len(blockchain.nodes) * 2 < len(blockchain.status[2][str(blockchain.current_block)]) * 3:
             blockchain.status[0] = 2
             threading.Thread(target=blockchain.commit).start()
     elif phase == 2:    # commit
@@ -119,7 +119,7 @@ def consensus():
             blockchain.status[3][1].add(node_id)
 
         # when True count is over 2/3 nodes, send result to mid server
-        if (len(blockchain.nodes) + 1) * 2 < len(blockchain.status[3][0]) * 3:
+        if len(blockchain.nodes) * 2 < len(blockchain.status[3][0]) * 3:
             # add current block to chain
             blockchain.add_block()
             # TODO : send result to mid server
@@ -131,7 +131,7 @@ def consensus():
             pass
 
         # when False count is over 1/3 nodes, send result to mid server
-        if len(blockchain.nodes) + 1 < len(blockchain.status[3][1]) * 3:
+        if len(blockchain.nodes) < len(blockchain.status[3][1]) * 3:
             # TODO : send result to mid server
             # TODO : reset the settings
             for tx in blockchain.current_transactions:
@@ -274,7 +274,6 @@ def get_connected_nodes():
     response = {'nodes': list(blockchain.nodes.keys())}
     return jsonify(response), 200
 
-
 @app.route('/nodes/register', methods=['POST'])
 def register_nodes():
     values = request.get_json()
@@ -325,12 +324,48 @@ def nodes_resolve():
 
     return jsonify(response), 200
 
+@app.route('/leader/tx_resolve', methods=['POST'])
+def tx_resolve():
+    values = request.get_json()
+    print("test", values)
+
+    cdata = bytes(values.get('data'))
+    sign = bytes(values.get('sign'))
+    node_id = values.get('id')
+    data = rsa.decrypt(cdata, blockchain.prikey)
+
+    if not rsa.verify(data, sign, blockchain.nodes[node_id][1]):
+        print("VERIFY ERROR")
+        response = {'message': "Verify Error"}
+        return jsonify(response), 400
+
+    data = literal_eval(data.decode('utf8'))
+    txs = data.get('txs')
+
+    if str(txs) in blockchain.resolve_cnt:
+        blockchain.resolve_cnt[str(txs)] += 1
+    else:
+        blockchain.resolve_cnt[str(txs)] = 1
+
+    if len(blockchain.nodes)*2 < blockchain.resolve_cnt[str(txs)]*3:
+        blockchain.transactions_buffer += txs
+
+    response = {
+        'message': 'Tx resolve'
+    }
+    return jsonify(response), 201
 
 @app.route('/nodes/leader/list', methods=['GET'])
 def get_leader():
     response = {'nodes': blockchain.leader}
     return jsonify(response), 200
 
+# 제거해야함
+@app.route('/drop', methods=['GET'])
+def drop_tx():
+    tx = blockchain.transactions_buffer.pop()
+    response = {'tx': tx}
+    return jsonify(response), 200
 
 @app.route('/nodes/leader/heartbeat', methods=['POST'])
 def heartbeat():
@@ -356,6 +391,13 @@ def heartbeat():
 
     # Reset timer
     blockchain.timer_chk = True
+    
+    if len(blockchain.transactions_buffer) > 0:
+        blockchain.retrans += 1
+        if blockchain.retrans == 3:
+            blockchain.tx_resolve()
+    else:
+        blockchain.retrans = 0
 
     response = {
         'message': 'Get heartbeat'

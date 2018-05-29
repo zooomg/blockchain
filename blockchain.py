@@ -34,9 +34,13 @@ class Blockchain:
         self.status = [0, None, {}, (set(), set())] # phase info [phase_idx, block, {str(block): [list(block's id)]}, (set(yes_id), set(no_id))]
         self.utxo = {}                              # utxo (client_id,checked pair)
         # auth server's (id, pubkey)
-        self.auth = {'address': "http://192.168.0.11:5000", 'pubkey': None}
+        self.auth = {'address': "http://192.168.0.87:5000", 'pubkey': None}
         # web server's ip
-        self.web = {'address': "http://192.168.0.11:3000"}
+        self.web = {'address': "http://192.168.0.87:3000"}
+        # retransmit count
+        self.retrans = 0
+        # tx resolve count
+        self.resolve_cnt = {}
 
         # Generate a globally unique address for this node
         self.node_identifier = str(uuid4()).replace('-', '')
@@ -207,6 +211,7 @@ class Blockchain:
             threading.Thread(target=self.block_thread, args=(url, headers, jdata)).start()
             self.send2web(web_chain_len, 0, node, block)
 
+        self.resolve_cnt = {}
         self.status = [1, block, {str(block): {self.node_identifier}}, (set(), set())]
         threading.Thread(target=self.prepare).start()
 
@@ -223,6 +228,7 @@ class Blockchain:
         sign = rsa.sign(str(data).encode('utf8'), self.prikey, 'SHA-1')
         headers = {'Connection': 'close', 'Content-Type': 'application/json'}
 
+        self.retrans = 0
         self.status[2][str(self.current_block)] = {self.leader[0], self.node_identifier}
         self.is_block = True
         sleep(1)
@@ -438,6 +444,24 @@ class Blockchain:
             sleep(1)
         def restart():
             n = 0
+
+    def tx_resolve(self):
+        headers = {'Connection': 'close', 'Content-Type': 'application/json'}
+        url = self.leader[1] + '/leader/tx_resolve'
+        data = {
+            'txs': self.transactions_buffer
+        }
+        print("test1", data)
+        sign = rsa.sign(str(data).encode('utf8'), self.prikey, 'SHA-1')
+
+        cdata = rsa.encrypt(str(data).encode('utf8'), self.nodes[self.leader[0]][1])
+        print("test2", cdata)
+        fdata = {'data': list(cdata), 'sign': list(sign), 'id': self.node_identifier}
+        print("test3", fdata)
+        jdata = json.dumps(fdata)
+        print("test4", jdata)
+
+        threading.Thread(target=self.block_thread, args=(url, headers, jdata)).start()
 
     def send2web(self, round, phase, to, msg):
         headers = {'Connection': 'close', 'Content-Type': 'application/json'}
