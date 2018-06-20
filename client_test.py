@@ -7,7 +7,7 @@ from uuid import uuid4
 from flask import Flask, jsonify, request
 
 
-auth_addr = "http://192.168.0.32:5000"
+auth_addr = "http://172.20.10.6:5000"
 
 utxo_msg = {
 	"user_mac": "",
