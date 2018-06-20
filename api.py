@@ -347,8 +347,9 @@ def tx_resolve():
     else:
         blockchain.resolve_cnt[str(txs)] = 1
 
-    if len(blockchain.nodes)*2 < blockchain.resolve_cnt[str(txs)]*3:
+    if len(blockchain.nodes) < blockchain.resolve_cnt[str(txs)]*2:
         blockchain.transactions_buffer += txs
+        blockchain.resolve_cnt = {}
 
     response = {
         'message': 'Tx resolve'

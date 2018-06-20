@@ -34,9 +34,9 @@ class Blockchain:
         self.status = [0, None, {}, (set(), set())] # phase info [phase_idx, block, {str(block): [list(block's id)]}, (set(yes_id), set(no_id))]
         self.utxo = {}                              # utxo (client_id,checked pair)
         # auth server's (id, pubkey)
-        self.auth = {'address': "http://192.168.0.87:5000", 'pubkey': None}
+        self.auth = {'address': "http://192.168.0.32:5000", 'pubkey': None}
         # web server's ip
-        self.web = {'address': "http://192.168.0.87:3000"}
+        self.web = {'address': "http://192.168.0.32:3000"}
         # retransmit count
         self.retrans = 0
         # tx resolve count
